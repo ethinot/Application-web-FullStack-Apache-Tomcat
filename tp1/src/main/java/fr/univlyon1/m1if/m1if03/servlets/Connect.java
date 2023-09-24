@@ -12,9 +12,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.util.ArrayList;
+//import java.util.ArrayList; UNUSED
 import java.util.HashMap;
-import java.util.List;
+//import java.util.List;  UNUSED
 import java.util.Map;
 
 /**
@@ -46,6 +46,11 @@ public class Connect extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         users.put(user.getLogin(), user);
+        // Change the username on modification
+        String userName = request.getParameter("name");
+        if (!user.getName().equals(userName)) {
+            user.setName(userName);
+        }
         // Utilise un RequestDispatcher pour "transférer" la requête à un autre objet, en interne du serveur.
         // Ceci n'est pas une redirection HTTP ; le client n'est pas informé de cette redirection.
         // Note :
