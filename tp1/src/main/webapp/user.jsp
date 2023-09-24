@@ -22,6 +22,7 @@
     <br/>
     <label for="username">Username : </label>
     <input id="username" name="name" type="text"  value=" <%= user.getName() %>">
+    <input type="submit" value="Connexion">
 </form>
 </body>
 </html>
