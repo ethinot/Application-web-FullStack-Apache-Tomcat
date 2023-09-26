@@ -18,10 +18,10 @@
 <form method="post" action="todos">
     <jsp:useBean id="user" scope="session" type="fr.univlyon1.m1if.m1if03.classes.User" />
     <label for="login">Login :</label>
-    <input id="login" name="login" type="text" readonly="readonly" value=" <%= user.getLogin() %>">
+    <input id="login" name="login" type="text" readonly="readonly" value="<%=user.getLogin()%>">
     <br/>
     <label for="username">Username : </label>
-    <input id="username" name="name" type="text"  value=" <%= user.getName() %>">
+    <input id="username" name="name" type="text"  value="<%=user.getName() %>">
     <input type="submit" value="Connexion">
 </form>
 </body>
