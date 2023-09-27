@@ -5,7 +5,7 @@
 ### 1.1) Prise en main d'nginx
 
 #### Q1) Quel est l'utilisateur qui a lancé le serveur ? Pourquoi ?
-Grâce à la commande ``` ps -aux ``` on constate que c'est l'utilisateur root qui à lancer le processusNginx. C'est l'utilisateur root qui lance les processus car c'est le seul à pouvoir écouter sur des ports en dessous de 1024. 
+Grâce à la commande ``` ps -aux ``` on constate que c'est l'utilisateur root qui à lancé le processus Nginx. C'est l'utilisateur root qui lance les processus car c'est le seul à pouvoir écouter sur des ports en dessous de 1024. 
 
 #### Q2) Quel est l'utilisateur qui fait tourner les "workers" ? Pourquoi ?
 
@@ -43,20 +43,22 @@ location / {
 
 Dans le fichier /etc/nginx/conf.d/default.conf la directive "root" du bloc "location" indique le répertoire des données du site.
 
+---
+
 ### 1.2) Configuration d'un site Web existant
 
 #### Q7) Indiquez le nom du fichier de configuration que vous avez modifié et le contenu que vous avez modifié.
 
-* Fichier de configuration modifier : /etc/nginx/conf.d/default.conf 
+* Fichier de configuration modifier : `/etc/nginx/conf.d/default.conf`
 
 * Les modification apporter au fichier :
-	* ```
+	```
 	location / {
             root   /usr/share/nginx/default;
             index  index.html index.htm;
         }	
 	```
-	* ```
+	```
 	location = /50x.html {
             root   /usr/share/nginx/default;
         }
@@ -70,11 +72,16 @@ location /images/ {
 }
 ```
 
+---
+
 ### 1.3) Mise en place d'un nouveau site
 
 #### Q9) Indiquez l'erreur renvoyée par le serveur et la raison pour laquelle elle est présente.
 
 L'erreur renvoyée par le serveur est 404 Not Found, la raison de cette erreur est que le répertoire qui contient les données du site (html etc..) n'est pas présent (/usr/share/nginx/monsite/).
+
+
+---
 
 ### 1.4) Scripting côté serveur
 
