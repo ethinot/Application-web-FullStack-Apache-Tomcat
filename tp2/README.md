@@ -86,3 +86,9 @@ Côté serveur, la configuration du serveur (default) ne prend pas en charge les
 
 On obient ce comportement car c'est le comportement par défaut qui est de télécharger les fichier inconnue. (Vraiment pas dingue)
 
+## 2) Mise en place de l'infrastructure des TPs suivants
+
+### 2.1) Sécurisation du serveur
+
+#### 2.1.1) Téléchargement et installation des certificats et des clés pré-générées
+
