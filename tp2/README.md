@@ -99,3 +99,72 @@ On obient ce comportement car c'est le comportement par défaut qui est de tél�
 
 #### 2.1.1) Téléchargement et installation des certificats et des clés pré-générées
 
+* Ajout des certificats (clé/certificat) dans le dosier /etc/ssl/(private/cert)
+
+* Versionning des certification sur la forge dans le fichier tp2/2.2.-securisation 
+
+#### 2.1.2) Analyse du certificat
+
+#### Q11) Qui est l’émetteur du certificat (issuer) ?
+
+L'émetteur du certificat est "M1IF-CA".
+
+#### Q12) Qui est le sujet certifié (subject) ?
+
+Le sujet certifié est "m1if03-2023-2024-C04".
+
+#### Q13) Quelle est la durée de validité de votre certificat ?
+
+La durée de validité du certificat est de 365 jours (Un ans). Elle ne dépassera pas la 25 septembre 10 heures, 41 minutes et 51 seconde.
+
+### 2.1.3) Mise en place du HTTPS 
+
+#### Q14) Quelle est la réaction de votre navigateur ?
+
+Notre navigateur previent que le site est non sécurisé et tente de dissuader l'utilisateur d'y accèder.
+
+#### Q15) Que veut dire le cadenas avec le point d'exclamation ?
+
+Le cadenas symbolise que le certificat est non valide. Cela survient lorque le certificat n'est pas présent dans le magasin
+
+#### Q16) Que se passe-t-il ?
+
+Le point d'exclamation sur le cadenas disparait. Cela signifit que le certification est bien validé pour le navigateur suite à l'ajout de ce dernier.
+
+### 2.1.4) Redirection HTTP
+
+#### Q17) Quelle est la différence entre les codes de redirection 301 et 308 ?
+
+* "Moved Permanently" 301 : permet le changement de la méthode de la requette lors de la rediraction
+
+* "Permanent Redirect" 308 : ne permet pas le changement de la méthode (GET/POST) lors de la redirection
+
+## 2.2) Front server / reverse proxy pour Tomcat
+
+#### Q18) Indiquez le bloc et les directives que vous avez rajoutés dans le fichier https.conf.
+
+Voici les deux blocs comportant les directives de redirection :
+
+```
+location /api/ {
+    proxy_pass http://localhost:8080/;
+}
+
+location /manager {
+    proxy_pass http://localhost:8080/manager;
+}
+```
+
+## 2.3) Gestion des sessions et des cookies
+
+#### Q19) Quel est ce mécanisme ? Comment faire pour que le serveur vous "oublie" ?
+
+Les coockies sont à l'origin de la gestion de la session utilisateur. Se mettre en navigation privé ou supprimer les coockies "à la main" sont un moyen pour que le serveur nous "ounlie". 
+
+#### Q20) À l'aide de la console réseau du navigateur expliquez ce qui se passe.
+
+Le proxy NGINX ne permet pas entre autre, de faire passer le css (HTTP 403). Le coockies lié à le demande du fichier css est refusé pour des raisons de sécurité.
+
+#### Q21) Quelle directive avez-vous rajoutée ?
+
+La directive ``` proxy_coockie_path / "/; secure; HttpOnly; SameSite=strict" ``` permet de résoudre le problème précédent. 
