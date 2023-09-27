@@ -5,22 +5,23 @@
 ### 1.1) Prise en main d'nginx
 
 #### Q1) Quel est l'utilisateur qui a lancé le serveur ? Pourquoi ?
-Grâce à la commande ``` ps -aux ``` on constate que c'est l'utilisateur root qui à lancé le processus Nginx. C'est l'utilisateur root qui lance les processus car c'est le seul à pouvoir écouter sur des ports en dessous de 1024. 
+Grâce à la commande ``` ps -aux ``` on constate que c'est l'utilisateur root qui a lancé le processus Nginx. C'est l'utilisateur root qui lance les processus, car c'est le seul à pouvoir écouter sur des ports en dessous de 1024. 
 
 #### Q2) Quel est l'utilisateur qui fait tourner les "workers" ? Pourquoi ?
 
-C'est l'utilisateur qui s'appelle nginx qui lance les workers, cela permets entre autre de limiter que des personnes malveillants qui prendrais possession d'un worker ai les accès root.
+C'est l'utilisateur qui s'appelle nginx qui lance les workers, cela permets entre autres de limiter que des personnes malveillants qui prendrais possession d'un worker ai les accès root.
 
 #### Q3) Que signifie la deuxième ligne (non vide) du fichier nginx.conf et comment vérifier qu'elle est bien prise en compte ?
 
-La deuxième ligne non vide permet de définir le nombre de worker process en route simultanément. La mention auto detecte le nombre de coeurs présent sur la machine hôte et adapte le nombre de workers en fonction.
+La deuxième ligne non-vide permet de définir le nombre de worker process en route simultanément. La mention auto detecte le nombre de cœurs présent sur la machine hôte et adapte le nombre de workers en fonction.
 
-Pour vérifier cela on modifie la valeur auto par 2 par exemple. Avec la commande ps aux on se rend bien compte que le nombre de workers nginx est de deux.
+Pour vérifier cela, on modifie la valeur auto par 2 par exemple. Avec la commande "ps aux" on se rend bien compte que le nombre de workers nginx est de deux.
 
 
 #### Q4) Où est situé le fichier de configuration du site actuellement déployé et comment le serveur le "trouve"-t-il ?
 
-Le fichier de configuation actuel est dans le dosier /etc/nginx/conf.d/default.conf. Le serveur le trouve grâce à la dernier ligne du fichier /etc/nginx/nginx.conf
+Le fichier de configuration actuel est dans le dossier /etc/nginx/conf.d/default.conf. 
+Le serveur le trouve grâce à la dernière ligne du fichier /etc/nginx/nginx.conf
 
 ```
 include /etc/nginx/conf.d/*.conf;
@@ -32,7 +33,7 @@ La directive "listen" du bloc "server" permet de spécifier le port d'écoute du
 
 #### Q6) Quel est le répertoire où se trouvent les données du site (fichier et directive) ? Pour vérifier, modifiez la page d'accueil de ce site, et constatez le résultat dans le navigateur.
 
-Le repertoire /usr/share/nginx/html/ contient les données du site (dont le index.html)
+Le répertoire /usr/share/nginx/html/ contient les données du site (dont l'index.html)
 
 ```
 location / {
@@ -49,9 +50,9 @@ Dans le fichier /etc/nginx/conf.d/default.conf la directive "root" du bloc "loca
 
 #### Q7) Indiquez le nom du fichier de configuration que vous avez modifié et le contenu que vous avez modifié.
 
-* Fichier de configuration modifier : `/etc/nginx/conf.d/default.conf`
+* Fichier de configuration modifié : `/etc/nginx/conf.d/default.conf`
 
-* Les modification apporter au fichier :
+* Les modifications apportées au fichier :
 	```
 	location / {
             root   /usr/share/nginx/default;
@@ -80,18 +81,17 @@ location /images/ {
 
 L'erreur renvoyée par le serveur est 404 Not Found, la raison de cette erreur est que le répertoire qui contient les données du site (html etc..) n'est pas présent (/usr/share/nginx/monsite/).
 
-
 ---
 
 ### 1.4) Scripting côté serveur
 
 #### Q10) Décrivez et expliquez - côté serveur et côté client - ce qui se passe et la raison pour laquelle vous obtenez ce comportement.
 
-Côté client, le fichier n'est pas interpréter et ainsi telecharger.
+Côté client, le fichier n'est pas interprétés et ainsi télécharger.
 
-Côté serveur, la configuration du serveur (default) ne prend pas en charge les requettes de fichier PHP. 
+Côté serveur, la configuration du serveur (default) ne prend pas en charge les requêtes de fichier PHP. 
 
-On obient ce comportement car c'est le comportement par défaut qui est de télécharger les fichier inconnue. (Vraiment pas dingue)
+On obtient ce comportement, car c'est le comportement par défaut qui est de télécharger les fichiers inconnues.
 
 ## 2) Mise en place de l'infrastructure des TPs suivants
 
@@ -99,9 +99,9 @@ On obient ce comportement car c'est le comportement par défaut qui est de tél�
 
 #### 2.1.1) Téléchargement et installation des certificats et des clés pré-générées
 
-* Ajout des certificats (clé/certificat) dans le dosier /etc/ssl/(private/cert)
+* Ajout des certificats (clé/certificat) dans le dossier /etc/ssl/(private/cert)
 
-* Versionning des certification sur la forge dans le fichier tp2/2.2.-securisation 
+* Versionning des certifications sur la forge dans le fichier tp2/2.2.-securisation 
 
 #### 2.1.2) Analyse du certificat
 
@@ -115,21 +115,25 @@ Le sujet certifié est "m1if03-2023-2024-C04".
 
 #### Q13) Quelle est la durée de validité de votre certificat ?
 
-La durée de validité du certificat est de 365 jours (Un ans). Elle ne dépassera pas la 25 septembre 10 heures, 41 minutes et 51 seconde.
+La durée de validité du certificat est de 365 jours (un an). Elle ne dépassera pas la 25 septembre 10 heures, 41 minutes et 51 secondes.
+
+---
 
 ### 2.1.3) Mise en place du HTTPS 
 
 #### Q14) Quelle est la réaction de votre navigateur ?
 
-Notre navigateur previent que le site est non sécurisé et tente de dissuader l'utilisateur d'y accèder.
+Notre navigateur prévient que le site est non sécurisé et tente de dissuader l'utilisateur d'y accéder.
 
 #### Q15) Que veut dire le cadenas avec le point d'exclamation ?
 
-Le cadenas symbolise que le certificat est non valide. Cela survient lorque le certificat n'est pas présent dans le magasin
+Le cadenas symbolise que le certificat est non valide. Cela survient lorsque le certificat n'est pas présent dans le magasin.
 
 #### Q16) Que se passe-t-il ?
 
-Le point d'exclamation sur le cadenas disparait. Cela signifit que le certification est bien validé pour le navigateur suite à l'ajout de ce dernier.
+Le point d'exclamation sur le cadenas disparaît. Cela signifie que la certification est bien validée pour le navigateur suite à l'ajout de ce dernier.
+
+---
 
 ### 2.1.4) Redirection HTTP
 
@@ -159,11 +163,11 @@ location /manager {
 
 #### Q19) Quel est ce mécanisme ? Comment faire pour que le serveur vous "oublie" ?
 
-Les coockies sont à l'origin de la gestion de la session utilisateur. Se mettre en navigation privé ou supprimer les coockies "à la main" sont un moyen pour que le serveur nous "ounlie". 
+Les cookies sont à l'origine de la gestion de la session utilisateur. Se mettre en navigation privée ou supprimer les cookies "à la main" sont un moyen pour que le serveur nous "oublie". 
 
 #### Q20) À l'aide de la console réseau du navigateur expliquez ce qui se passe.
 
-Le proxy NGINX ne permet pas entre autre, de faire passer le css (HTTP 403). Le coockies lié à le demande du fichier css est refusé pour des raisons de sécurité.
+Le proxy NGINX ne permet pas entre autres, de faire passer le css (HTTP 403). Le cookie lié à la demande du fichier css est refusé pour des raisons de sécurité.
 
 #### Q21) Quelle directive avez-vous rajoutée ?
 
