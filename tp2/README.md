@@ -167,8 +167,8 @@ Les cookies sont à l'origine de la gestion de la session utilisateur. Se mettre
 
 #### Q20) À l'aide de la console réseau du navigateur expliquez ce qui se passe.
 
-Le proxy NGINX ne permet pas entre autres, de faire passer le css (HTTP 403). Le cookie lié à la demande du fichier css est refusé pour des raisons de sécurité.
+Le proxy NGINX ne transmet pas les cookies de la session utilisateur (HTTP 403). Le cookie lié à la requete est refusé pour des raisons de sécurité par le proxy Nginx, il ne le transmet donc pas à Tomcat.
 
 #### Q21) Quelle directive avez-vous rajoutée ?
 
-La directive ``` proxy_coockie_path / "/; secure; HttpOnly; SameSite=strict" ``` permet de résoudre le problème précédent. 
+La directive placée dans la location /api/ ``` proxy_coockie_path / "/; secure; HttpOnly; SameSite=strict" ``` permet de résoudre le problème précédent. 
