@@ -11,6 +11,7 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
 deploy: 
+  image: maven:3.6.1-jdk-11 # docker image with Maven
   only:
     - main
   before_script:
