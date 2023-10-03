@@ -16,7 +16,6 @@ deploy:
     - master
   before_script:
     - source ./ci/setup-mvn-proxy.sh
-    - chmod 400 $CI_SSH_KEY
     - apt-get update -y && apt install openssh-client -y
   script:
     - cd $CURRENT_TP_FOLDER
