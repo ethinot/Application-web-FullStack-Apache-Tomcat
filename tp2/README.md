@@ -172,3 +172,23 @@ Le proxy NGINX ne transmet pas les cookies de la session utilisateur (HTTP 403).
 #### Q21) Quelle directive avez-vous rajoutée ?
 
 La directive placée dans la location /api/ ``` proxy_coockie_path / "/; secure; HttpOnly; SameSite=strict" ``` permet de résoudre le problème précédent. 
+
+## Déploiement de votre projet forge
+
+* On ajout l'utilisateur gitlabci au groups tomcat
+	* ``` sudo usermod -a -G tomcat gitlabci ```
+
+* Changer les droits sur le repertoire /opt/tomcat/webapps (récursivement) pour que les utilisateur du group tomcat puissent écrire (initalement r-x)
+	* ``` sudo chmod -R g+w /opt/tomcat/webapps/ ```
+
+
+
+* Ajout d'une variables "CI_SSH_KEY" de type file sur la forge CI/CD qui contient la clé ssh pour l'utilisateur gitlabci (settings -> Variables -> Add variable)
+
+* Ajout du script "setup_mvn_proxy.sh" dans le fichier ci/ de la forge 
+
+* Configuration du fichier de configuation du CI/CD "gitlab-ci.yml" 
+
+* Ajout de deux variables de configuration :
+	* CURRENT_TP_FOLDER -> fichier de tp actuel (exemple : "tp1/")
+	* DEPLOY_PATH -> chemin de deploiment de l'app dans tomcat (exemple : "/opt/tomcat/webapps/v1.war")
