@@ -11,7 +11,7 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
 deploy: 
-  image: maven:3.9.4-sapmachine-17
+  image: maven:3.8.3-openjdk-17
   only:
     - master
   before_script:
