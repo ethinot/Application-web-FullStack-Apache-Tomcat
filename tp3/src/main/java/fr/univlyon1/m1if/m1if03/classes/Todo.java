@@ -13,7 +13,8 @@ import java.util.Objects;
 public class Todo {
     private final int hash;
     private String title;
-    private User assignee = null;
+    //private User assignee = null;
+    private String userLogin; // Remplacera le commentaire du dessus
     private boolean completed = false;
 
     /**
@@ -40,16 +41,16 @@ public class Todo {
         this.title = title;
     }
 
-    public User getAssignee() {
-        return assignee;
+    public String getAssignee() {
+        return userLogin;
     }
 
     /**
      * Assigne un utilisateur à la réalisation du TODO_.
      * @param assignee Login de l'utilisateur à assigner
      */
-    public void setAssignee(User assignee) {
-        this.assignee = assignee;
+    public void setAssignee(String userAssignee) {
+        this.userLogin = userAssignee;
     }
 
     public boolean isCompleted() {
