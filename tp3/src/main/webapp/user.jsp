@@ -21,11 +21,11 @@
     <br>
     Todos:
     <ul>
-        <c:forEach items="${applicationScope.todos}" var="todo">
-            <c:if test="${todo.assignee != null && todo.assignee.equals(user)}">
-                <li><a href="todolist#${todo.hashCode()}">${todo.title}</a></li>
-            </c:if>
-        </c:forEach>
+<%--        <c:forEach items="${applicationScope.todos}" var="todo">--%>
+<%--            <c:if test="${todo.assignee != null && todo.assignee.equals(user)}">--%>
+<%--                <li><a href="todolist#${todo.hashCode()}">${todo.title}</a></li>--%>
+<%--            </c:if>--%>
+<%--        </c:forEach>--%>
     </ul>
 </div>
 </c:if>
