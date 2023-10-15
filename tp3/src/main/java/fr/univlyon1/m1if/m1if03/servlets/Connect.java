@@ -1,11 +1,8 @@
 package fr.univlyon1.m1if.m1if03.servlets;
 
-import fr.univlyon1.m1if.m1if03.classes.Todo;
 import fr.univlyon1.m1if.m1if03.classes.User;
 
 import fr.univlyon1.m1if.m1if03.daos.Dao;
-import fr.univlyon1.m1if.m1if03.daos.TodoDao;
-import fr.univlyon1.m1if.m1if03.daos.UserDao;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -16,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import javax.naming.NameAlreadyBoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * Cette servlet initialise les objets communs à toute l'application,
@@ -38,12 +34,10 @@ public class Connect extends HttpServlet {
         super.init(config);
         //Récupère le contexte applicatif et y place les variables globales
         ServletContext context = config.getServletContext();
-
-        //users = (Dao<User>) context.getAttribute("users");
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         User user = new User(request.getParameter("login"), request.getParameter("name"));
         try {
             Dao<User> users = (Dao<User>) this.getServletContext().getAttribute("users");
@@ -51,6 +45,7 @@ public class Connect extends HttpServlet {
                 case "add" -> {
                     users.add(user);
                 }
+                default -> throw new UnsupportedOperationException("Opération à réaliser non prise en charge.");
             }
         } catch (NameAlreadyBoundException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Un utilisateur avec le login " + user.getLogin() + " existe déjà.");
