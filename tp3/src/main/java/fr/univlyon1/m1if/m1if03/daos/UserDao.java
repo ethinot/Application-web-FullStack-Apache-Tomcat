@@ -34,5 +34,22 @@ public class UserDao extends AbstractMapDao<User> {
         }
         throw new NameNotFoundException(name);
     }
+
+    /**
+     * Return the user attach to the login.
+     *
+     * @param login the user string used to authenticate a user.
+     * @return a User object
+     * @throws NameNotFoundException if the login is null or unknown
+     */
+    public User findByLogin(String login) throws NameNotFoundException {
+        for(User user: this.collection.values()) {
+            if(user.getLogin().equals(login)) {
+                return user;
+            }
+        }
+        throw new NameNotFoundException(login);
+    }
+
     //</editor-fold>
 }
