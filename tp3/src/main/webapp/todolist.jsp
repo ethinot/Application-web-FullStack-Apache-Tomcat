@@ -1,5 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="fr.univlyon1.m1if.m1if03.daos.TodoDao" %>
+<%@ page import="fr.univlyon1.m1if.m1if03.classes.Todo" %>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -16,7 +18,7 @@
         <th>Titre</th>
         <th>Utilisateur assigné</th>
     </tr>
-    <c:forEach var="todo" items="${applicationScope.todos}">
+    <c:forEach var="todo" items="${applicationScope.todos.findAll()}">
     <form method="POST" action="todolist">
         <tr id="${todo.hashCode()}">
             <td>${todo.completed ? "&#x2611;" : "&#x2610;"}</td>
