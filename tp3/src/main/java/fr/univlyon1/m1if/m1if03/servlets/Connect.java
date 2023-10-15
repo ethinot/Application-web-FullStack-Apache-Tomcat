@@ -30,7 +30,7 @@ public class Connect extends HttpServlet {
     // Elles seront stockées dans le contexte applicatif pour pouvoir être accédées par tous les objets de l'application :
 
     // DAO d'objets User
-    private final Dao<User> users = new UserDao();
+    //private Dao<User> users = new UserDao();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -39,18 +39,19 @@ public class Connect extends HttpServlet {
         //Récupère le contexte applicatif et y place les variables globales
         ServletContext context = config.getServletContext();
 
-        // Variables communes pour toute l'application (remplacent la BD).
-        // Elles seront stockées dans le contexte applicatif pour pouvoir être accédées par tous les objets de l'application :
-        context.setAttribute("users", users);
-        // A modifier (DAO)
-        context.setAttribute("todos", new TodoDao());
+        //users = (Dao<User>) context.getAttribute("users");
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = new User(request.getParameter("login"), request.getParameter("name"));
         try {
-            users.add(user);
+            Dao<User> users = (Dao<User>) this.getServletContext().getAttribute("users");
+            switch (request.getParameter("operation")) {
+                case "add" -> {
+                    users.add(user);
+                }
+            }
         } catch (NameAlreadyBoundException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Un utilisateur avec le login " + user.getLogin() + " existe déjà.");
             return;

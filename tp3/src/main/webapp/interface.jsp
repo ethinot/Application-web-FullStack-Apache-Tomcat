@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,9 +8,10 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<c:set var="user" value="${applicationScope.users.findOne(param.user)}" scope="request"/>
 <header>
     <h1 class="header-titre">MIF TODOs</h1>
-    <p class="header-user">Bonjour <strong><a href="user.jsp?user=${sessionScope.login}" target="list">${applicationScope.users.findOne(sessionScope.login).name}</a></strong></p>
+    <p class="header-user">Bonjour <strong><a href="user.jsp?user=${user.login}" target="list">${user.name}</a></strong></p>
 </header>
 
 <div class="wrapper">
