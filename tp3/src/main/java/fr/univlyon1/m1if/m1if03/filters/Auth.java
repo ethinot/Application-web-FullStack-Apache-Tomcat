@@ -7,7 +7,6 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,23 +32,13 @@ public class Auth extends HttpFilter {
         String url = request.getRequestURI().replace(request.getContextPath(), "");
 
         // Laisse passer les URLs ne nécessitant pas d'authentification et les requêtes par des utilisateurs authentifiés
-        // Note :
-        //   le paramètre false dans request.getSession(false) permet de récupérer null si la session n'est pas déjà créée.
-        //   Sinon, l'appel de la méthode getSession() la crée automatiquement.
         if (Arrays.asList(whiteList).contains(url) || request.getSession(false) != null) {
             chain.doFilter(request, response);
             return;
         }
 
         // Traite les formulaires d'authentification
-        String login = request.getParameter("login");
-        if (url.equals("/connect") &&
-                request.getMethod().equals("POST") &&
-                /*(request.getPathInfo().equals("index.html")) &&*/
-                login != null && !login.isEmpty()) {
-            // Gestion de la session utilisateur
-            HttpSession session = request.getSession(true);
-            session.setAttribute("login", login);
+        if (url.equals("/connect") && request.getMethod().equals("POST")) {
             chain.doFilter(request, response);
             return;
         }

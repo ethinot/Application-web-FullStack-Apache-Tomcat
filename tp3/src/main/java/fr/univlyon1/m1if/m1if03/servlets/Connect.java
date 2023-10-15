@@ -41,12 +41,17 @@ public class Connect extends HttpServlet {
             Dao<User> users = (Dao<User>) this.getServletContext().getAttribute("users");
             switch (request.getParameter("operation")) {
                 case "add" -> {
+                    // Gestion de la création de l'utilisateur
                     User newUser = new User(request.getParameter("login"), request.getParameter("name"));
                     try {
                         users.add(new User(request.getParameter("login"), request.getParameter("name")));
                     } catch (NameAlreadyBoundException e) {
                         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The key used for add the new user is already used.");
                     }
+                    // Gestion de la session utilisateur
+                    String login = request.getParameter("login");
+                    HttpSession session = request.getSession(true);
+                    session.setAttribute("login", login);
                     response.sendRedirect("interface.jsp");
                 }
                 case "del" -> {
