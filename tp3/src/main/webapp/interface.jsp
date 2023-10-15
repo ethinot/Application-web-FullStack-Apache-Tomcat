@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<c:set var="user" value="${applicationScope.users.findOne(param.user)}" scope="request"/>
+<c:set var="user" value="${applicationScope.users.findOne(sessionScope.login)}" scope="request"/>
 <header>
     <h1 class="header-titre">MIF TODOs</h1>
     <p class="header-user">Bonjour <strong><a href="user.jsp?user=${user.login}" target="list">${user.name}</a></strong></p>
