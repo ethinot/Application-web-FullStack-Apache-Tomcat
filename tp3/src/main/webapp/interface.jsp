@@ -24,7 +24,9 @@
             <a href="todolist" target="list">Tâches</a>
         </div>
         <div>
-            <a href="deco">D&eacute;connexion</a>
+            <a href="connect">D&eacute;connexion
+                <input type="hidden" name="operation" value="del">
+            </a>
         </div>
     </aside>
 
