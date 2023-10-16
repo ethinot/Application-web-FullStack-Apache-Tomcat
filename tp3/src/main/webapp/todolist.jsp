@@ -18,14 +18,14 @@
         <th>Titre</th>
         <th>Utilisateur assigné</th>
     </tr>
-    <c:forEach var="todo" items="${applicationScope.todos.findAll()}">
+    <c:forEach items="${requestScope.todos.findAll()}" var="todos">
     <form method="POST" action="todolist">
         <tr id="${todo.hashCode()}">
             <td>${todo.completed ? "&#x2611;" : "&#x2610;"}</td>
             <td><em>${todo.title}</em></td>
             <td>
-                <c:if test="${todo.assignee != null}"><a href="user.jsp?user=${todo.assignee.login}">${todo.assignee.login}</a></c:if>
-                <c:if test="${!todo.completed && todo.assignee.login != sessionScope.login}">
+                <c:if test="${todo.userAssigne != null}"><a href="user.jsp?user=${todo.userAssigne}">${todo.userAssigne}</a></c:if>
+                <c:if test="${!todo.completed && todo.userAssigne != sessionScope.login}">
                     <input type='submit' name='assign' value='Choisir cette tâche'>&nbsp;
                 </c:if>
             </td>
@@ -34,7 +34,7 @@
             </td>
         </tr>
         <input type='hidden' name='operation' value='update'>
-        <input type='hidden' name='index' value='${applicationScope.todos.indexOf(todo)}'>
+        <input type='hidden' name='index' value='${requestScope.todos.indexOf(todo)}'>
     </form>
     </c:forEach>
 </table>
