@@ -13,8 +13,7 @@ import java.util.Objects;
 public class Todo {
     private final int hash;
     private String title;
-    //private User assignee = null;
-    private String userLogin; // Remplacera le commentaire du dessus
+    private String userAssigne; // Remplacera le commentaire du dessus
     private boolean completed = false;
 
     /**
@@ -26,6 +25,7 @@ public class Todo {
         this.title = title;
         // On rassemble toutes les infos sur l'instance, pour permettre de les distinguer
         this.hash = Objects.hash(title, creator, (new Date()).getTime());
+        this.userAssigne = creator;
     }
 
     public String getTitle() {
@@ -42,7 +42,7 @@ public class Todo {
     }
 
     public String getAssignee() {
-        return userLogin;
+        return userAssigne;
     }
 
     /**
@@ -50,7 +50,7 @@ public class Todo {
      * @param userAssignee assignee Login de l'utilisateur à assigner
      */
     public void setAssignee(String userAssignee) {
-        this.userLogin = userAssignee;
+        this.userAssigne = userAssignee;
     }
 
     public boolean isCompleted() {
