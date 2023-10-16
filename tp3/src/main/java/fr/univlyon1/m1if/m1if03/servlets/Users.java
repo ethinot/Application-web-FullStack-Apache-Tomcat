@@ -1,7 +1,6 @@
 package fr.univlyon1.m1if.m1if03.servlets;
 
 import fr.univlyon1.m1if.m1if03.classes.User;
-
 import fr.univlyon1.m1if.m1if03.daos.Dao;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -17,19 +16,12 @@ import javax.naming.NameNotFoundException;
 import java.io.IOException;
 
 /**
- * Cette servlet initialise les objets communs à toute l'application,
- * récupère les infos de l'utilisateur pour les placer dans sa session
- * et affiche l'interface du chat.
+ * This Servlet act as a controller for all actions like to users.
  *
- * @author Lionel Médini
+ *
  */
-@WebServlet(name = "Connect", urlPatterns = {"/connect"})
-public class Connect extends HttpServlet {
-    // Elles seront stockées dans le contexte applicatif pour pouvoir être accédées par tous les objets de l'application :
-
-    // DAO d'objets User
-    private Dao<User> users;
-
+@WebServlet(name = "UserMap", value = "/user")
+public class Users extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -55,7 +47,7 @@ public class Connect extends HttpServlet {
                     response.sendRedirect("interface.jsp");
                 }
                 case "del" -> {
-                    doGet(request, response);
+                    deleteUser(request, response);
                 }
                 default -> throw new UnsupportedOperationException("Opération à réaliser non prise en charge.");
             }
@@ -70,6 +62,10 @@ public class Connect extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
+    }
+
+    protected void deleteUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         String login = null;
         try {
