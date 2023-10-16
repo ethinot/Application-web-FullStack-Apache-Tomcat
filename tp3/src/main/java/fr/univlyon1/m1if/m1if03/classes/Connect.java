@@ -37,7 +37,9 @@ public interface Connect {
             String login = request.getParameter("login");
             HttpSession session = request.getSession(true);
             session.setAttribute("login", login);
-            response.sendRedirect("interface.jsp");
+            // On envoie juste le user en question a interface.jspS
+            request.setAttribute("user", users.findOne(request.getParameter("login")));
+            request.getRequestDispatcher("interface.jsp").include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
         } catch (Exception e) {

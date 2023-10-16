@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<c:set var="user" value="${applicationScope.users.findOne(sessionScope.login)}" scope="request"/>
+<c:set var="user" value="${requestScope.user}" scope="request"/>
 <header>
     <h1 class="header-titre">MIF TODOs</h1>
     <p class="header-user">Bonjour <strong><a href="user.jsp?user=${user.login}" target="list">${user.name}</a></strong></p>
@@ -24,9 +24,7 @@
             <a href="todolist" target="list">Tâches</a>
         </div>
         <div>
-            <a href="connect">D&eacute;connexion
-                <input type="hidden" name="operation" value="del">
-            </a>
+            <a href="users">Déconnexion</a>
         </div>
     </aside>
 
@@ -41,7 +39,7 @@
                 </label>
                 <input type="submit" value="Envoyer">
                 <input type="hidden" name="operation" value="add">
-                <input type="hidden" name="login" value="${sessionScope.login}">
+                <input type="hidden" name="login" value="${user.login}">
             </p>
         </form>
     </article>
