@@ -38,7 +38,7 @@ public class Auth extends HttpFilter {
         }
 
         // Traite les formulaires d'authentification
-        if (url.equals("/connect") && request.getMethod().equals("POST")) {
+        if (url.equals("/users") && request.getMethod().equals("POST")) {
             chain.doFilter(request, response);
             return;
         }
