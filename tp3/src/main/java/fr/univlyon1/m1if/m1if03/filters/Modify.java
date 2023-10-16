@@ -1,7 +1,5 @@
 package fr.univlyon1.m1if.m1if03.filters;
 
-import fr.univlyon1.m1if.m1if03.classes.User;
-import fr.univlyon1.m1if.m1if03.daos.Dao;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
@@ -10,8 +8,6 @@ import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import javax.naming.InvalidNameException;
-import javax.naming.NameNotFoundException;
 import java.io.IOException;
 
 /**
@@ -29,22 +25,23 @@ public class Modify extends HttpFilter {
 
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+        String url = request.getRequestURI().replace(request.getContextPath(), "");
 
-        if (request.getMethod().equals("POST")) {
-            try {
-                if(!request.getParameter("login").equals(request.getSession(false).getAttribute("login"))) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Vous devez vous connecter pour accéder au site." + request.getParameter("login"));
-                }
-                User user = ((Dao<User>) this.getServletContext().getAttribute("users")).findOne(request.getParameter("login"));
-                user.setName(request.getParameter("name"));
-            } catch (NullPointerException | InvalidNameException | NameNotFoundException e) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Login de l'utilisateur vide ou inexistant: " + request.getParameter("login") + ".");
+        String login = request.getParameter("login");
+
+        if (url.equals("/user.jsp") && request.getMethod().equals("POST") && login != null && !login.isEmpty()) {
+            if (!request.getParameter("login").equals(request.getSession(false).getAttribute("login"))) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, new StringBuilder()
+                        .append("Vous n'avez pas le droit de modifier une autre utilisateur que vous ")
+                        .append(request.getParameter("login")).toString());
                 return;
             }
-            // On redirige la totalité de l'interface pour afficher le nouveau nom dans l'interface
-            response.sendRedirect("interface.jsp");
-        } else {
             chain.doFilter(request, response);
+            return;
+        // Let pass GET request to display userlist for authenticated users
+        } else if (request.getSession(false) != null) {
+            chain.doFilter(request, response);
+            return;
         }
     }
 }
