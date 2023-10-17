@@ -37,7 +37,7 @@ public interface Connect {
             String login = request.getParameter("login");
             HttpSession session = request.getSession(true);
             session.setAttribute("login", login);
-            // On envoie juste le user en question a interface.jspS
+            // On envoie juste le user en question a interface.jsp
             request.setAttribute("user", users.findOne(request.getParameter("login")));
             request.getRequestDispatcher("interface.jsp").include(request, response);
         } catch (NumberFormatException e) {

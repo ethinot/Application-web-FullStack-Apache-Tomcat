@@ -53,6 +53,5 @@ public class Users extends HttpServlet implements Connect, UserOperation {
         } else if (actualURL.equals("list")) {
             UserOperation.returnUsersListAndSize(request, response);
         }
-
     }
 }
