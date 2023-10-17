@@ -1,6 +1,7 @@
 package fr.univlyon1.m1if.m1if03.servlets;
 
 import fr.univlyon1.m1if.m1if03.classes.Connect;
+import fr.univlyon1.m1if.m1if03.classes.UserOperation;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,7 +17,7 @@ import java.io.IOException;
  *
  */
 @WebServlet(name = "Users", value = "/users")
-public class Users extends HttpServlet implements Connect {
+public class Users extends HttpServlet implements Connect, UserOperation {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -43,6 +44,13 @@ public class Users extends HttpServlet implements Connect {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        Connect.disconnect(request, response);
+        final String actualURL = request.getRequestURI().replace(request.getContextPath(), "");
+        switch (actualURL) {
+            case "/index.html" -> {
+                Connect.disconnect(request, response);
+            }
+            default -> UserOperation.returnUser(request, response);
+        }
+
     }
 }
