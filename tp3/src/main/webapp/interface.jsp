@@ -11,7 +11,7 @@
 <c:set var="user" value="${requestScope.user}" scope="request"/>
 <header>
     <h1 class="header-titre">MIF TODOs</h1>
-    <p class="header-user">Bonjour <strong><a href="user.jsp?user=${user.login}" target="list">${user.name}</a></strong></p>
+    <p class="header-user">Bonjour <strong><a href="users" target="list">${user.name}</a></strong></p>
 </header>
 
 <div class="wrapper">
