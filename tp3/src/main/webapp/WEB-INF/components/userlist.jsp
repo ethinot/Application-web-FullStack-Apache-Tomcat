@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>TODOs</title>
-    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <meta http-equiv="refresh" content="5">
 </head>
 <body>
