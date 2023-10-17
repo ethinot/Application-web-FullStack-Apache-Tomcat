@@ -28,7 +28,7 @@ public class TodoList extends HttpServlet implements TodoOperation {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         final String actualURL = request.getQueryString();
-        if (actualURL.equals("list")) {
+        if (actualURL == null || actualURL.equals("list")) {
             TodoOperation.getTodoList(request, response);
         }
     }
