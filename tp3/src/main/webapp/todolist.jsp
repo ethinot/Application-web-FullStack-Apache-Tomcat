@@ -18,19 +18,20 @@
         <th>Titre</th>
         <th>Utilisateur assigné</th>
     </tr>
-    <c:forEach items="${requestScope.todos}" var="todos">
+    <c:forEach items="${requestScope.todos}" var="todo">
     <form method="POST" action="todolist">
         <tr id="${todo.hashCode()}">
-            <td>${todo.completed ? "&#x2611;" : "&#x2610;"}</td>
-            <td><em>${todo.title}</em></td>
+            <td>${todo.isCompleted() ? "&#x2611;" : "&#x2610;"}</td>
+            <td><em>${todo.getTitle()}</em></td>
             <td>
-                <c:if test="${todo.userAssigne != null}"><a href="user.jsp?user=${todo.userAssigne}">${todo.userAssigne}</a></c:if>
-                <c:if test="${!todo.completed && todo.userAssigne != sessionScope.login}">
+                <c:if test="${todo.getUserAssigne() != null}"><a href="users?user=${todo.getUserAssigne()}">${todo.getUserAssigne()}</a></c:if>
+                <c:if test="${!todo.isCompleted() && todo.getUserAssigne() != sessionScope.login}">
                     <input type='submit' name='assign' value='Choisir cette tâche'>&nbsp;
                 </c:if>
             </td>
             <td>
-                <input type='submit' name='toggle' value='${todo.completed ? "Not done!" : "Done!"}'>
+                <!--TODO Implement this function -->
+                <input type='submit' name='toggle' value='${todo.isCompleted() ? "Not done!" : "Done!"}'>
             </td>
         </tr>
         <input type='hidden' name='operation' value='update'>
