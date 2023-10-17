@@ -27,7 +27,10 @@ public class TodoList extends HttpServlet implements TodoOperation {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        request.getRequestDispatcher("todolist.jsp").include(request, response);
+        final String actualURL = request.getQueryString();
+        if (actualURL.equals("list")) {
+            TodoOperation.getTodoList(request, response);
+        }
     }
 
     @Override
@@ -41,6 +44,5 @@ public class TodoList extends HttpServlet implements TodoOperation {
             }
             default -> throw new UnsupportedOperationException("Opération à réaliser non prise en charge.");
         }
-        doGet(request, response);
     }
 }
