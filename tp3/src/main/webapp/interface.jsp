@@ -21,7 +21,7 @@
             <a href="users?list" target="list">Utilisateurs</a>
         </div>
         <div>
-            <a href="todolist" target="list">Tâches</a>
+            <a href="todolist?list" target="list">Tâches</a>
         </div>
         <div>
             <a href="users?disconnexion">Déconnexion</a>
@@ -29,7 +29,7 @@
     </aside>
 
     <article class="contenu">
-        <iframe src="todolist" name="list" style="border: none; width: 100%; height: 300px;"></iframe>
+        <iframe src="todolist?list" name="list" style="border: none; width: 100%; height: 300px;"></iframe>
         <hr>
         <form method="post" action="todolist" target="list">
             <p>
