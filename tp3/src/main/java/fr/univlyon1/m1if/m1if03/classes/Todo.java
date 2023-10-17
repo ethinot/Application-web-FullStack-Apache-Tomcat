@@ -77,4 +77,9 @@ public class Todo {
     public int hashCode() {
         return this.hash;
     }
+
+
+    public String getUserAssigne() {
+        return userAssigne;
+    }
 }
