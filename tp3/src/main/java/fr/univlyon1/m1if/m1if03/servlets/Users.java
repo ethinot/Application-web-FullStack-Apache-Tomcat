@@ -26,12 +26,13 @@ public class Users extends HttpServlet implements Connect, UserOperation {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         try {
-            switch (request.getParameter("operation")) {
-                case "add" -> {
-                    Connect.connect(request, response);
-                }
-
-                default -> throw new UnsupportedOperationException("Opération à réaliser non prise en charge.");
+            String operation = request.getParameter("operation");
+            if ("add".equals(operation)) {
+                Connect.connect(request, response);
+            } else if ("update".equals(operation)) {
+                UserOperation.updateUserName(request, response);
+            } else {
+                throw new UnsupportedOperationException("Opération à réaliser non prise en charge.");
             }
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
@@ -44,12 +45,11 @@ public class Users extends HttpServlet implements Connect, UserOperation {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        final String actualURL = request.getRequestURI().replace(request.getContextPath(), "");
-        switch (actualURL) {
-            case "/index.html" -> {
-                Connect.disconnect(request, response);
-            }
-            default -> UserOperation.returnUser(request, response);
+        final String actualURL = request.getQueryString();
+        if (actualURL.equals("disconnexion")) {
+            Connect.disconnect(request, response);
+        } else if (actualURL.equals("account")){
+            UserOperation.returnUser(request, response);
         }
 
     }
