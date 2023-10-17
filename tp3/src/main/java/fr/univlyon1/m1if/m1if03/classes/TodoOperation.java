@@ -29,7 +29,7 @@ public interface TodoOperation {
                 throw new MissingParameterException("Paramètres du Todo insuffisamment spécifiés.");
             }
             todos.add(new Todo(request.getParameter("title"), request.getParameter("login")));
-            request.setAttribute("todos", todos);
+            request.setAttribute("todos", todos.findAll());
             request.getRequestDispatcher("todolist.jsp").include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
