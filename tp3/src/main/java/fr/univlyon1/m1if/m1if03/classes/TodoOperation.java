@@ -72,4 +72,16 @@ public interface TodoOperation {
         }
     }
 
+    static void getUserTodos(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            AbstractListDao<Todo> todos = (AbstractListDao<Todo>) request.getServletContext().getAttribute("todos");
+            request.setAttribute("todos", todos);
+            request.getRequestDispatcher("user.jsp").include(request, response);
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        }
+    }
+
 }
