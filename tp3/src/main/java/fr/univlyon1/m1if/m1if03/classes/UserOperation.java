@@ -28,7 +28,7 @@ public interface UserOperation {
             User user = users.findOne((String) request.getSession(false).getAttribute("login"));
             request.setAttribute("user", user);
             request.setAttribute("todos", todos.findAll());
-            String redirectURL = "user.jsp?user=" + user.getLogin();
+            String redirectURL = "/WEB-INF/components/user.jsp?user=" + user.getLogin();
             request.getRequestDispatcher(redirectURL).include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
@@ -45,7 +45,7 @@ public interface UserOperation {
             updatedUser.setName(request.getParameter("name"));
             users.update(userLogin, updatedUser);
             request.setAttribute("user", updatedUser);
-            request.getRequestDispatcher("interface.jsp").include(request, response);
+            request.getRequestDispatcher("/WEB-INF/components/interface.jsp").include(request, response);
         } catch (NullPointerException | NameNotFoundException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Login de l'utilisateur vide ou inexistant: " + request.getParameter("login") + ".");
         } catch (NumberFormatException e) {
@@ -60,7 +60,7 @@ public interface UserOperation {
             AbstractMapDao<User> users = ((AbstractMapDao<User>) request.getServletContext().getAttribute("users"));
             request.setAttribute("users", users.findAll());
             request.setAttribute("usersSize", users.findAll().size());
-            request.getRequestDispatcher("userlist.jsp").include(request, response);
+            request.getRequestDispatcher("/WEB-INF/components/userlist.jsp").include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
         } catch (Exception e) {

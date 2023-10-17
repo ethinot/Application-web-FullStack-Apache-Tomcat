@@ -30,7 +30,7 @@ public interface TodoOperation {
             }
             todos.add(new Todo(request.getParameter("title"), request.getParameter("login")));
             request.setAttribute("todos", todos.findAll());
-            request.getRequestDispatcher("todolist.jsp").include(request, response);
+            request.getRequestDispatcher("/WEB-INF/components/todolist.jsp").include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
         } catch (Exception e) {
@@ -65,6 +65,7 @@ public interface TodoOperation {
                     throw new MissingParameterException("Modification à réaliser non spécifiée.");
                 }
             }
+            // TODO implement update
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
         } catch (Exception e) {
@@ -76,7 +77,7 @@ public interface TodoOperation {
         try {
             AbstractListDao<Todo> todos = (AbstractListDao<Todo>) request.getServletContext().getAttribute("todos");
             request.setAttribute("todos", todos);
-            request.getRequestDispatcher("user.jsp").include(request, response);
+            request.getRequestDispatcher("/WEB-INF/components/user.jsp").include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
         } catch (Exception e) {
@@ -88,7 +89,7 @@ public interface TodoOperation {
         try {
             AbstractListDao<Todo> todos = (AbstractListDao<Todo>) request.getServletContext().getAttribute("todos");
             request.setAttribute("todos", todos.findAll());
-            request.getRequestDispatcher("todolist.jsp").include(request, response);
+            request.getRequestDispatcher("/WEB-INF/components/todolist.jsp").include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
         } catch (Exception e) {
