@@ -18,7 +18,7 @@
         <th>Titre</th>
         <th>Utilisateur assigné</th>
     </tr>
-    <c:forEach items="${requestScope.todos.findAll()}" var="todos">
+    <c:forEach items="${requestScope.todos}" var="todos">
     <form method="POST" action="todolist">
         <tr id="${todo.hashCode()}">
             <td>${todo.completed ? "&#x2611;" : "&#x2610;"}</td>
