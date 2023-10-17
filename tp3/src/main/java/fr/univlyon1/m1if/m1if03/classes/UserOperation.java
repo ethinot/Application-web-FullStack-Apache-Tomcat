@@ -1,5 +1,6 @@
 package fr.univlyon1.m1if.m1if03.classes;
 
+import fr.univlyon1.m1if.m1if03.daos.AbstractListDao;
 import fr.univlyon1.m1if.m1if03.daos.AbstractMapDao;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,10 +23,28 @@ public interface UserOperation {
     static void returnUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             AbstractMapDao<User> users = (AbstractMapDao<User>) request.getServletContext().getAttribute("users");
+            AbstractListDao<Todo> todos = (AbstractListDao<Todo>) request.getServletContext().getAttribute("todos");
             User user = users.findOne((String) request.getSession(false).getAttribute("login"));
             request.setAttribute("user", user);
+            request.setAttribute("todos", todos.findAll());
             String redirectURL = "user.jsp?user=" + user.getLogin();
             request.getRequestDispatcher(redirectURL).include(request, response);
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    static void updateUserName(HttpServletRequest request, HttpServletResponse response) throws  IOException {
+        try {
+            String userLogin = (String) request.getSession(false).getAttribute("login");
+            AbstractMapDao<User> users = ((AbstractMapDao<User>) request.getServletContext().getAttribute("users"));
+            User updatedUser = users.findOne(request.getParameter("login"));
+            updatedUser.setName(request.getParameter("name"));
+            users.update(userLogin, updatedUser);
+            request.setAttribute("user", updatedUser);
+            request.getRequestDispatcher("interface.jsp").include(request, response);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Format de l'index du User incorrect.");
         } catch (Exception e) {
