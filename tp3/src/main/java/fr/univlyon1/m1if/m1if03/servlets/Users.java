@@ -48,8 +48,10 @@ public class Users extends HttpServlet implements Connect, UserOperation {
         final String actualURL = request.getQueryString();
         if (actualURL.equals("disconnexion")) {
             Connect.disconnect(request, response);
-        } else if (actualURL.equals("account")){
+        } else if (actualURL.equals("user=" + request.getSession(false).getAttribute("login"))) {
             UserOperation.returnUser(request, response);
+        } else if (actualURL.equals("list")) {
+            UserOperation.returnUsersListAndSize(request, response);
         }
 
     }
