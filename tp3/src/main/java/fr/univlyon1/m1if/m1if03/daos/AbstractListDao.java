@@ -89,4 +89,24 @@ public abstract class AbstractListDao<T> implements Dao<T> {
     protected Serializable getKeyForElement(T element) {
         return this.collection.indexOf(element);
     }
+
+    /**
+     * Return the size of the class member collection.
+     *
+     * @return the size of the actual ListDao
+     */
+    public int size() {
+        return this.collection.size();
+    }
+
+    /**
+     * Function the return the index of the parameter.
+     *
+     * @param element The element we searched in collection
+     * @return The index of the element
+     */
+    public int indexOf(T element) {
+        return collection.indexOf(element);
+    }
+
 }
