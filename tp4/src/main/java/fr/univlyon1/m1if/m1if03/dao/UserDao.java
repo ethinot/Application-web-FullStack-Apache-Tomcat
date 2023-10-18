@@ -1,19 +1,20 @@
-package fr.univlyon1.m1if.m1if03.daos;
+package fr.univlyon1.m1if.m1if03.dao;
 
-import fr.univlyon1.m1if.m1if03.classes.User;
+import fr.univlyon1.m1if.m1if03.model.User;
+import jakarta.validation.constraints.NotNull;
 
 import javax.naming.NameNotFoundException;
 import java.io.Serializable;
 
 /**
- * Exemple d'implémentation de l'interface DAO pour la classe <code>User</code>.
+ * Implémentation de l'interface DAO pour la classe <code>User</code>.
  *
  * @author Lionel Médini
  */
 public class UserDao extends AbstractMapDao<User> {
     //<editor-fold desc="Implémentation de la méthode de la classe générique">
     @Override
-    protected Serializable getKeyForElement(User element) {
+    protected Serializable getKeyForElement(@NotNull User element) {
         return element.getLogin();
     }
     //</editor-fold>
@@ -26,7 +27,7 @@ public class UserDao extends AbstractMapDao<User> {
      * @return un <code>User</code> dont le nom est celui passé en paramètre
      * @throws NameNotFoundException Si le nom de l'utilisateur à rechercher n'a pas été trouvé
      */
-    public User findByName(String name) throws NameNotFoundException {
+    public User findByName(@NotNull String name) throws NameNotFoundException {
         for(User user: this.collection.values()) {
             if(user.getName().equals(name)) {
                 return user;
@@ -34,22 +35,5 @@ public class UserDao extends AbstractMapDao<User> {
         }
         throw new NameNotFoundException(name);
     }
-
-    /**
-     * Return the user attach to the login.
-     *
-     * @param login the user string used to authenticate a user.
-     * @return a User object
-     * @throws NameNotFoundException if the login is null or unknown
-     */
-    public User findByLogin(String login) throws NameNotFoundException {
-        for(User user: this.collection.values()) {
-            if(user.getLogin().equals(login)) {
-                return user;
-            }
-        }
-        throw new NameNotFoundException(login);
-    }
-
     //</editor-fold>
 }

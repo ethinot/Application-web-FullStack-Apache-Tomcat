@@ -1,4 +1,4 @@
-package fr.univlyon1.m1if.m1if03.classes;
+package fr.univlyon1.m1if.m1if03.model;
 
 import java.util.Date;
 import java.util.Objects;
@@ -9,11 +9,10 @@ import java.util.Objects;
  * et éventuellement, le login de l'utilisateur assigné à sa réalisation.
  * Pour créer un TODO_, il faut indiquer l'id de l'utilisateur qui l'a créé.
  */
-// Testing
 public class Todo {
     private final int hash;
     private String title;
-    private String userAssigne; // Remplacera le commentaire du dessus
+    private String assignee = null;
     private boolean completed = false;
 
     /**
@@ -23,9 +22,16 @@ public class Todo {
      */
     public Todo(String title, String creator) {
         this.title = title;
-        // On rassemble toutes les infos sur l'instance, pour permettre de les distinguer
-        this.hash = Objects.hash(title, creator, (new Date()).getTime());
-        this.userAssigne = creator;
+        this.hash = Objects.hash(title, creator, new Date().getTime());
+    }
+
+    /**
+     * Création d'un TODO_.
+     * @param title Texte indiqué dans le TODO_
+     */
+    public Todo(String title) {
+        this.title = title;
+        this.hash = Objects.hash(title, new Date().getTime());
     }
 
     public String getTitle() {
@@ -42,15 +48,15 @@ public class Todo {
     }
 
     public String getAssignee() {
-        return userAssigne;
+        return assignee;
     }
 
     /**
      * Assigne un utilisateur à la réalisation du TODO_.
-     * @param userAssignee assignee Login de l'utilisateur à assigner
+     * @param assignee Login de l'utilisateur à assigner
      */
-    public void setAssignee(String userAssignee) {
-        this.userAssigne = userAssignee;
+    public void setAssignee(String assignee) {
+        this.assignee = assignee;
     }
 
     public boolean isCompleted() {
@@ -76,10 +82,5 @@ public class Todo {
     @Override
     public int hashCode() {
         return this.hash;
-    }
-
-
-    public String getUserAssigne() {
-        return userAssigne;
     }
 }
