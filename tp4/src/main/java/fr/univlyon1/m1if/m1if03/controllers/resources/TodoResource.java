@@ -47,4 +47,35 @@ public class TodoResource {
         boolean actuelStatus = todoDao.findByHash(todoHash).isCompleted();
         todoDao.findByHash(todoHash).setCompleted(!actuelStatus);
     }
+
+    public Collection<Todo> readAll() { return todoDao.findAll(); }
+
+    public Todo readOne(@Positive int todoHash) {
+        return todoDao.findByHash(todoHash);
+    }
+
+    public void update(@Positive int todoHash, String titre, String assignee) {
+        Todo todo = readOne(todoHash);
+        if(titre != null && assignee.isEmpty()){
+            todo.setTitle(titre);
+        }
+        if(assignee != null && titre.isEmpty()) {
+            todo.setAssignee(assignee);
+        }
+    }
+
+    public void delete(@Positive int todoHash) throws NameNotFoundException {
+        Todo todo = todoDao.findByHash(todoHash);
+        todoDao.delete(todo);
+    }
+
+    public String readByTitle(@Positive int todoHash) {
+        return todoDao.findByHash(todoHash).getTitle();
+    }
+
+    public String readByAssignee(@Positive int todoHash) throws NameNotFoundException {
+        return todoDao.findByHash(todoHash).getAssignee();
+    }
+
+
 }
