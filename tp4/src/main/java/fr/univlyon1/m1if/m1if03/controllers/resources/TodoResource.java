@@ -42,6 +42,7 @@ public class TodoResource {
         todoDao.add(new Todo(titre, creatorLogin));
     }
 
+    // TODO move to business
     public void modifyStatus(@Positive int todoHash) {
         boolean actuelStatus = todoDao.findByHash(todoHash).isCompleted();
         todoDao.findByHash(todoHash).setCompleted(!actuelStatus);
