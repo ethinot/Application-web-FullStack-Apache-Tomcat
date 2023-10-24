@@ -2,34 +2,22 @@ package fr.univlyon1.m1if.m1if03.controllers;
 
 import fr.univlyon1.m1if.m1if03.controllers.resources.TodoResource;
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
-import fr.univlyon1.m1if.m1if03.dao.UserDao;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoDtoMapper;
-import fr.univlyon1.m1if.m1if03.dto.user.UserDtoMapper;
-import fr.univlyon1.m1if.m1if03.dto.user.UserResponseDto;
-import fr.univlyon1.m1if.m1if03.exceptions.ForbiddenLoginException;
-import fr.univlyon1.m1if.m1if03.model.Todo;
-import fr.univlyon1.m1if.m1if03.model.User;
-import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
 
-import javax.naming.InvalidNameException;
-import javax.naming.NameAlreadyBoundException;
-import javax.naming.NameNotFoundException;
 import java.io.IOException;
-import java.util.Collection;
 
 /**
  * Contrôleur de ressources "todos".
  * Gère les CU liés aux opérations CRUD sur la collection de todos :
  *     Création / modification / suppression d'un toto : POST, PUT, DELETE
  *     Récupération de la liste de todos / de todo en lien avec un utilisateur / d'un todo en particulier : GET
- * Cette servlet fait appel à une nested class UserResource</code> qui se charge des appels au DAO.
+ * Cette servlet fait appel à une nested class UserResource qui se charge des appels au DAO.
  * Les opérations métier spécifiques (login &amp; logout) sont réalisées par la servlet <a href="UserBusinessController.html"><code>UserBusinessController</code></a>.
  *
  * @author Lionel Médini
@@ -59,27 +47,7 @@ public class TodoResourceController extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setHeader("X-test", "doPost");
 
-        String[] url = UrlUtils.getUrlParts(request);
-
-        if (url.length == 1) {// Création d'un utilisateur
-            // TODO Parsing des paramètres "old school" ; sera amélioré dans la partie négociation de contenus...
-            String login = request.getParameter("login");
-            String password = request.getParameter("password");
-            String name = request.getParameter("name");
-            try {
-                userResource.create(login, password, name);
-                response.setHeader("Location", "users/" + login);
-                response.setStatus(HttpServletResponse.SC_CREATED);
-            } catch (IllegalArgumentException | ForbiddenLoginException ex) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-            } catch (NameAlreadyBoundException e) {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + login + " n'est plus disponible.");
-            }
-        } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-        }
     }
 
     /**
@@ -105,36 +73,7 @@ public class TodoResourceController extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("X-test", "doGet");
-        String[] url = UrlUtils.getUrlParts(request);
-        if (url.length == 1) { // Renvoie la liste de tous les utilisateurs
-            request.setAttribute("users", todoResource.readAll());
-            // Transfère la gestion de l'interface à une JSP
-            request.getRequestDispatcher("/WEB-INF/components/users.jsp").include(request, response);
-            return;
-        }
-        try {
-            Todo todo = todoResource.readOne(url[1]);
-            UserResponseDto userDto = todoMapper.toDto(todo);
-            switch (url.length) {
 
-                default -> { // Redirige vers l'URL qui devrait correspondre à la sous-propriété demandée (qu'elle existe ou pas ne concerne pas ce contrôleur)
-                    if (url[2].equals("assignedTodos")) {
-                        // Construction de la fin de l'URL vers laquelle rediriger
-                        String urlEnd = UrlUtils.getUrlEnd(request, 3);
-                        response.sendRedirect("todos" + urlEnd);
-                    } else {
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                    }
-                }
-            }
-        } catch (IllegalArgumentException ex) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-        } catch (NameNotFoundException e) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "L'utilisateur " + url[1] + " n'existe pas.");
-        } catch (InvalidNameException ignored) {
-            // Ne devrait pas arriver car les paramètres sont déjà des Strings
-        }
     }
 
     /**
@@ -156,33 +95,7 @@ public class TodoResourceController extends HttpServlet {
      */
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String[] url = UrlUtils.getUrlParts(request);
-        String login = url[1];
-        // TODO Parsing des paramètres "old school" ; sera amélioré dans la partie négociation de contenus...
-        String password = request.getParameter("password");
-        String name = request.getParameter("name");
 
-        if (url.length == 2) {
-            try {
-                userResource.update(login, password, name);
-                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            } catch (IllegalArgumentException ex) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-            } catch (NameNotFoundException e) {
-                try {
-                    userResource.create(login, password, name);
-                    response.setHeader("Location", "users/" + login);
-                    response.setStatus(HttpServletResponse.SC_CREATED);
-                } catch (NameAlreadyBoundException ignored) {
-                } catch (IllegalArgumentException | ForbiddenLoginException ex) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-                }
-            } catch (InvalidNameException ignored) {
-                // Ne devrait pas arriver car les paramètres sont déjà des Strings
-            }
-        } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-        }
     }
 
     /**
@@ -196,24 +109,8 @@ public class TodoResourceController extends HttpServlet {
      */
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String[] url = UrlUtils.getUrlParts(request);
-        String login = url[1];
-        if (url.length == 2) {
-            try {
-                userResource.delete(login);
-                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            } catch (IllegalArgumentException ex) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-            } catch (NameNotFoundException e) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "L'utilisateur " + login + " n'existe pas.");
-            } catch (InvalidNameException ignored) {
-                // Ne devrait pas arriver car les paramètres sont déjà des Strings
-            }
-        } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-        }
+
     }
-    //</editor-fold>
 
     //<editor-fold desc="Nested class qui interagit avec le DAO">
 }
