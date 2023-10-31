@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * Contrôleur d'opérations métier "users".<br>
@@ -32,9 +33,20 @@ public class TodoBusinessController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (request.getRequestURI().endsWith("toggleStatus")) {
-            // TODO : A compléter pour que cela fonction correctement (swagger test)
-            int todoHash = request.getParameter("todoId").hashCode();
-            todoBusiness.modifyStatus(todoHash);
+            try {
+                int todoHash = Integer.parseInt(request.getParameter("hash"));
+                todoBusiness.modifyStatus(todoHash);
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            } catch (NumberFormatException ex1) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du todo est syntaxiquement incorrect.");
+            } catch (IllegalArgumentException ex2) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex2.getMessage());
+            } catch (NoSuchElementException ex3) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Le todo avec cet id n'existe pas.");
+            }
+        } else {
+            // Ne devrait pas arriver mais sait-on jamais...
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 }

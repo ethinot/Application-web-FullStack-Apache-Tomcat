@@ -3,6 +3,8 @@ package fr.univlyon1.m1if.m1if03.controllers.resources;
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
 import jakarta.validation.constraints.Positive;
 
+import java.util.NoSuchElementException;
+
 /**
  * Nested class qui réalise l'opérations de changement de status d'un todo (completé ou non).<br>
  *
@@ -19,8 +21,13 @@ public class TodoBusiness {
         this.todoDao = todoDao;
     }
 
-    public void modifyStatus(@Positive int todoHash) {
+    /**
+     * Modifie le statut d'un todo.
+     * @param todoHash le hash du todo à modifier
+     */
+    public void modifyStatus(@Positive int todoHash) throws IllegalArgumentException, NoSuchElementException {
         boolean actuelStatus = todoDao.findByHash(todoHash).isCompleted();
         todoDao.findByHash(todoHash).setCompleted(!actuelStatus);
     }
+
 }

@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import javax.naming.NameNotFoundException;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * Contrôleur de ressources "todos".
@@ -55,8 +56,15 @@ public class TodoResourceController extends HttpServlet {
         String[] url = UrlUtils.getUrlParts(request);
         if (url.length == 1) {
             // Création d'un todo
-            String title = request.getParameter("titre");
-            String creator = request.getParameter("assignee");
+            String title = request.getParameter("title");
+            String creator = request.getParameter("creator");
+            try {
+                int todoHash = todoResource.create(title, creator);
+                response.setHeader("Location", "todos/" + todoHash);
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            } catch (IllegalArgumentException ex) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+            }
         }
     }
 
@@ -71,6 +79,9 @@ public class TodoResourceController extends HttpServlet {
         if (url.length == 1) {
             // Renvoie la collections de todos
             request.setAttribute("todos", todoResource.readAll());
+            // Transfère la gestion de l'interface à une JSP
+            //request.getRequestDispatcher("/WEB-INF/components/todos.jsp").include(request, response);
+            return;
         }
         try {
             Todo todo = todoResource.readOne(Integer.parseInt(url[1]));
@@ -79,15 +90,18 @@ public class TodoResourceController extends HttpServlet {
                 case 2 -> {
                     // Renvoie un DTO de todo
                     request.setAttribute("totoDto", todoDto);
-                    request.getRequestDispatcher("/WEB-INF/components/user.jsp").include(request, response);
+                    //request.getRequestDispatcher("/WEB-INF/components/todo.jsp").include(request, response);
                 }
                 case 3 -> { // Renvoie une propriété d'un todo
                     switch (url[2]) {
                         case "title" -> {
-                            // Renvoie le titre d'un todo
+                            request.setAttribute("todoDto", new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), null));
+                            //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
                         }
                         case "assignee" -> {
                             // Renvoie l'utilisateur auquel le todo est assigné
+                            request.setAttribute("todoDto", new TodoResponseDto(null, todoDto.getHash(), todoDto.getAssignee()));
+                            //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
                         }
                         default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
                     }
@@ -104,9 +118,9 @@ public class TodoResourceController extends HttpServlet {
             }
         } catch (IllegalArgumentException ex) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-        } /*catch (NameNotFoundException e) {
+        } catch (NoSuchElementException e) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Le todo " + url[1] + " n'existe pas.");
-        }*/
+        }
     }
 
     /**
@@ -131,7 +145,9 @@ public class TodoResourceController extends HttpServlet {
             try {
                 todoResource.update(todoHash, title, assignee);
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            } catch (IllegalArgumentException ex1) {
+            } catch (IllegalArgumentException ex) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+            } catch (NoSuchElementException ex1) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex1.getMessage());
                 try {
                     todoResource.create(title, assignee);
@@ -158,15 +174,19 @@ public class TodoResourceController extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] url = UrlUtils.getUrlParts(request);
-        int todoId = Integer.parseInt(url[1]);
         if (url.length == 2) {
             try {
+                int todoId = Integer.parseInt(url[1]);
                 todoResource.delete(todoId);
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            } catch (IllegalArgumentException ex) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-            } catch (NameNotFoundException e) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Le todo avec l'id : " + todoId + " n'existe pas.");
+            } catch (NumberFormatException ex4) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du todo est syntaxiquement incorrect.");
+            } catch (IllegalArgumentException ex1) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex1.getMessage());
+            } catch (NoSuchElementException ex2) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Le todo avec cet id n'existe pas.");
+            } catch (NameNotFoundException ex3) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "L'utilisateur n'existe pas.");
             }
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
