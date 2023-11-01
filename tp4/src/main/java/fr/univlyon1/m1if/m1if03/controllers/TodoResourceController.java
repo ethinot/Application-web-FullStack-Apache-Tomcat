@@ -95,12 +95,17 @@ public class TodoResourceController extends HttpServlet {
                 case 3 -> { // Renvoie une propriété d'un todo
                     switch (url[2]) {
                         case "title" -> {
-                            request.setAttribute("todoDto", new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), null));
+                            request.setAttribute("todoDto", new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), null, null));
                             //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
                         }
                         case "assignee" -> {
                             // Renvoie l'utilisateur auquel le todo est assigné
-                            request.setAttribute("todoDto", new TodoResponseDto(null, todoDto.getHash(), todoDto.getAssignee()));
+                            request.setAttribute("todoDto", new TodoResponseDto(null, todoDto.getHash(), todoDto.getAssignee(), null));
+                            //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
+                        }
+                        case "status" -> {
+                            // Renvoie le status du todo
+                            request.setAttribute("todoDto", new TodoResponseDto(null, todoDto.getHash(), null, todoDto.getCompleted()));
                             //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
                         }
                         default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
