@@ -174,7 +174,7 @@ public class UserResourceController extends HttpServlet {
         if (url.length == 2) {
             try {
                 userRequestDto = (UserRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, UserRequestDto.class);
-                userResource.update(userRequestDto.getLogin(), userRequestDto.getPassword(), userRequestDto.getName());
+                userResource.update(login, userRequestDto.getPassword(), userRequestDto.getName());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
