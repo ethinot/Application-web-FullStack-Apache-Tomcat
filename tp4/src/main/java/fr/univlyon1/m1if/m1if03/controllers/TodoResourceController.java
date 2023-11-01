@@ -3,8 +3,10 @@ package fr.univlyon1.m1if.m1if03.controllers;
 import fr.univlyon1.m1if.m1if03.controllers.resources.TodoResource;
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoDtoMapper;
+import fr.univlyon1.m1if.m1if03.dto.todo.TodoRequestDto;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoResponseDto;
 import fr.univlyon1.m1if.m1if03.model.Todo;
+import fr.univlyon1.m1if.m1if03.utils.ContentNegotiationHelper;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -31,6 +33,7 @@ import java.util.NoSuchElementException;
 public class TodoResourceController extends HttpServlet {
     private TodoDtoMapper todoMapper;
     private TodoResource todoResource;
+    private TodoRequestDto todoRequestDto;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -52,14 +55,11 @@ public class TodoResourceController extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setHeader("X-test", "doPost");
         String[] url = UrlUtils.getUrlParts(request);
         if (url.length == 1) {
-            // Création d'un todo
-            String title = request.getParameter("title");
-            String creator = request.getParameter("creator");
             try {
-                int todoHash = todoResource.create(title, creator);
+                todoRequestDto = (TodoRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, TodoRequestDto.class);
+                int todoHash = todoResource.create(todoRequestDto.getTitle(), todoRequestDto.getCreator());
                 response.setHeader("Location", "todos/" + todoHash);
                 response.setStatus(HttpServletResponse.SC_CREATED);
             } catch (IllegalArgumentException ex) {
@@ -143,24 +143,15 @@ public class TodoResourceController extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] url = UrlUtils.getUrlParts(request);
         int todoHash = Integer.parseInt(url[1]);
-        String title = request.getParameter("title");
-        String assignee = request.getParameter("assignee");
-
         if (url.length == 2) {
+            // Modifier l'utilisateur assigner au todo OU son titre.
             try {
-                todoResource.update(todoHash, title, assignee);
+                //
+                todoRequestDto = (TodoRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, TodoRequestDto.class);
+                todoResource.update(todoHash, todoRequestDto.getTitle(), todoRequestDto.getAssignee());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            } catch (IllegalArgumentException ex) {
+            } catch (IllegalArgumentException | NoSuchElementException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-            } catch (NoSuchElementException ex1) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex1.getMessage());
-                try {
-                    todoResource.create(title, assignee);
-                    response.setHeader("Location", "todos/" + todoHash);
-                    response.setStatus(HttpServletResponse.SC_CREATED);
-                } catch (IllegalArgumentException ex2) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex2.getMessage());
-                }
             }
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
