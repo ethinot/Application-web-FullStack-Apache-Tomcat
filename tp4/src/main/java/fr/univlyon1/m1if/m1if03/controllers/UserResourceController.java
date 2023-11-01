@@ -172,19 +172,17 @@ public class UserResourceController extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] url = UrlUtils.getUrlParts(request);
         String login = url[1];
-        // TODO Parsing des paramètres "old school" ; sera amélioré dans la partie négociation de contenus...
-        String password = request.getParameter("password");
-        String name = request.getParameter("name");
 
         if (url.length == 2) {
             try {
-                userResource.update(login, password, name);
+                userRequestDto = (UserRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, UserRequestDto.class);
+                userResource.update(userRequestDto.getLogin(), userRequestDto.getPassword(), userRequestDto.getName());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameNotFoundException e) {
                 try {
-                    userResource.create(login, password, name);
+                    userResource.create(login, userRequestDto.getPassword(), userRequestDto.getName());
                     response.setHeader("Location", "users/" + login);
                     response.setStatus(HttpServletResponse.SC_CREATED);
                 } catch (NameAlreadyBoundException ignored) {
