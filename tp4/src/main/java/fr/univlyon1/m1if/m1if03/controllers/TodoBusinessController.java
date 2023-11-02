@@ -2,6 +2,8 @@ package fr.univlyon1.m1if.m1if03.controllers;
 
 import fr.univlyon1.m1if.m1if03.controllers.resources.TodoBusiness;
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
+import fr.univlyon1.m1if.m1if03.dto.todo.TodoRequestDto;
+import fr.univlyon1.m1if.m1if03.utils.ContentNegotiationHelper;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * Contrôleur d'opérations métier "users".<br>
@@ -21,6 +24,7 @@ import java.io.IOException;
 public class TodoBusinessController extends HttpServlet {
 
     private TodoBusiness todoBusiness;
+    private TodoRequestDto todoRequestDto;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -32,9 +36,20 @@ public class TodoBusinessController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (request.getRequestURI().endsWith("toggleStatus")) {
-            // TODO : A compléter pour que cela fonction correctement (swagger test)
-            int todoHash = request.getParameter("todoId").hashCode();
-            todoBusiness.modifyStatus(todoHash);
+            try {
+                todoRequestDto = (TodoRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, TodoRequestDto.class);
+                todoBusiness.modifyStatus(todoRequestDto.getHash());
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            } catch (NumberFormatException ex1) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du todo " + todoRequestDto.getHash() + " est syntaxiquement incorrect.");
+            } catch (IllegalArgumentException ex2) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex2.getMessage());
+            } catch (NoSuchElementException ex3) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Le todo avec le hash " + todoRequestDto.getHash() + " n'existe pas.");
+            }
+        } else {
+            // Ne devrait pas arriver mais sait-on jamais...
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 }

@@ -3,9 +3,11 @@ package fr.univlyon1.m1if.m1if03.controllers;
 import fr.univlyon1.m1if.m1if03.controllers.resources.UserResource;
 import fr.univlyon1.m1if.m1if03.dao.UserDao;
 import fr.univlyon1.m1if.m1if03.dto.user.UserDtoMapper;
+import fr.univlyon1.m1if.m1if03.dto.user.UserRequestDto;
 import fr.univlyon1.m1if.m1if03.dto.user.UserResponseDto;
 import fr.univlyon1.m1if.m1if03.exceptions.ForbiddenLoginException;
 import fr.univlyon1.m1if.m1if03.model.User;
+import fr.univlyon1.m1if.m1if03.utils.ContentNegotiationHelper;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -35,6 +37,7 @@ import java.io.IOException;
 public class UserResourceController extends HttpServlet {
     private UserDtoMapper userMapper;
     private UserResource userResource;
+    private UserRequestDto userRequestDto;
 
     //<editor-fold desc="Méthode de gestion du cycle de vie">
     @Override
@@ -57,23 +60,18 @@ public class UserResourceController extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setHeader("X-test", "doPost");
-
         String[] url = UrlUtils.getUrlParts(request);
 
         if (url.length == 1) {// Création d'un utilisateur
-            // TODO Parsing des paramètres "old school" ; sera amélioré dans la partie négociation de contenus...
-            String login = request.getParameter("login");
-            String password = request.getParameter("password");
-            String name = request.getParameter("name");
             try {
-                userResource.create(login, password, name);
-                response.setHeader("Location", "users/" + login);
+                userRequestDto = (UserRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, UserRequestDto.class);
+                userResource.create(userRequestDto.getLogin(), userRequestDto.getPassword(), userRequestDto.getName());
+                response.setHeader("Location", "users/" + userRequestDto.getLogin());
                 response.setStatus(HttpServletResponse.SC_CREATED);
             } catch (IllegalArgumentException | ForbiddenLoginException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameAlreadyBoundException e) {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + login + " n'est plus disponible.");
+                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + userRequestDto.getLogin() + " n'est plus disponible.");
             }
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -172,19 +170,17 @@ public class UserResourceController extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] url = UrlUtils.getUrlParts(request);
         String login = url[1];
-        // TODO Parsing des paramètres "old school" ; sera amélioré dans la partie négociation de contenus...
-        String password = request.getParameter("password");
-        String name = request.getParameter("name");
 
         if (url.length == 2) {
             try {
-                userResource.update(login, password, name);
+                userRequestDto = (UserRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, UserRequestDto.class);
+                userResource.update(login, userRequestDto.getPassword(), userRequestDto.getName());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameNotFoundException e) {
                 try {
-                    userResource.create(login, password, name);
+                    userResource.create(login, userRequestDto.getPassword(), userRequestDto.getName());
                     response.setHeader("Location", "users/" + login);
                     response.setStatus(HttpServletResponse.SC_CREATED);
                 } catch (NameAlreadyBoundException ignored) {

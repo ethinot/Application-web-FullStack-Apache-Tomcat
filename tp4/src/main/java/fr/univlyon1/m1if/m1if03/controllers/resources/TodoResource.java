@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Positive;
 
 import javax.naming.NameNotFoundException;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 
 /**
  * Nested class qui réalise les opérations "simples" (CRUD) de gestion des ressources de type Todo.
@@ -27,18 +28,21 @@ public class TodoResource {
     /**
      * Crée un toto et le place dans le DAO.
      *
+     * @return int Le hash du todo crée
      * @param titre Titre de la todo créée
      * @param creatorLogin Login de l'utilisateur qui crée la todo
      * @throws IllegalArgumentException Si le creatorLogin ou titre est null ou vide
      */
-    public void create(@NotNull String titre, @NotNull String creatorLogin) throws IllegalArgumentException {
+    public int create(@NotNull String titre, @NotNull String creatorLogin) throws IllegalArgumentException {
         if (creatorLogin == null || creatorLogin.isEmpty()) {
             throw new IllegalArgumentException("Le login du créateur ne doit pas être null ou vide.");
         }
         if (titre == null) {
             throw new IllegalArgumentException("Le titre ne doit pas être null.");
         }
-        todoDao.add(new Todo(titre, creatorLogin));
+        Todo newTodo = new Todo(titre, creatorLogin);
+        todoDao.add(newTodo);
+        return newTodo.hashCode();
     }
 
     public Collection<Todo> readAll() {
@@ -49,28 +53,26 @@ public class TodoResource {
         return todoDao.findByHash(todoHash);
     }
 
-    public void update(@Positive int todoHash, String titre, String assignee) {
+    public void update(@Positive int todoHash, String titre, String assignee) throws NoSuchElementException{
         Todo todo = readOne(todoHash);
-        if(titre != null && assignee.isEmpty()) {
+        if(titre != null && !titre.isEmpty()) {
             todo.setTitle(titre);
         }
-        if(assignee != null && titre.isEmpty()) {
+        if(assignee != null && !assignee.isEmpty()) {
             todo.setAssignee(assignee);
         }
     }
 
-    public void delete(@Positive int todoHash) throws NameNotFoundException {
+    public void delete(@Positive int todoHash) throws NoSuchElementException, NameNotFoundException {
         Todo todo = todoDao.findByHash(todoHash);
         todoDao.delete(todo);
     }
 
-    public String readByTitle(@Positive int todoHash) {
+    public String readByTitle(@Positive int todoHash) throws NoSuchElementException{
         return todoDao.findByHash(todoHash).getTitle();
     }
 
-    public String readByAssignee(@Positive int todoHash) throws NameNotFoundException {
+    public String readByAssignee(@Positive int todoHash) throws NoSuchElementException {
         return todoDao.findByHash(todoHash).getAssignee();
     }
-
-
 }
