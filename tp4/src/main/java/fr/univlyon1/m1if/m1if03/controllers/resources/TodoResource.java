@@ -1,19 +1,18 @@
 package fr.univlyon1.m1if.m1if03.controllers.resources;
 
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
-import fr.univlyon1.m1if.m1if03.dao.UserDao;
-import fr.univlyon1.m1if.m1if03.exceptions.ForbiddenLoginException;
 import fr.univlyon1.m1if.m1if03.model.Todo;
-import fr.univlyon1.m1if.m1if03.model.User;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 
-import javax.naming.InvalidNameException;
-import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import java.util.Collection;
 
+/**
+ * Nested class qui réalise les opérations "simples" (CRUD) de gestion des ressources de type Todo.
+ * Son utilité est surtout de prendre en charge les différentes exceptions qui peuvent être levées par le DAO.
+ *
+ */
 public class TodoResource {
     private final TodoDao todoDao;
 
@@ -42,13 +41,9 @@ public class TodoResource {
         todoDao.add(new Todo(titre, creatorLogin));
     }
 
-    // TODO move to business
-    public void modifyStatus(@Positive int todoHash) {
-        boolean actuelStatus = todoDao.findByHash(todoHash).isCompleted();
-        todoDao.findByHash(todoHash).setCompleted(!actuelStatus);
+    public Collection<Todo> readAll() {
+        return todoDao.findAll();
     }
-
-    public Collection<Todo> readAll() { return todoDao.findAll(); }
 
     public Todo readOne(@Positive int todoHash) {
         return todoDao.findByHash(todoHash);
@@ -56,7 +51,7 @@ public class TodoResource {
 
     public void update(@Positive int todoHash, String titre, String assignee) {
         Todo todo = readOne(todoHash);
-        if(titre != null && assignee.isEmpty()){
+        if(titre != null && assignee.isEmpty()) {
             todo.setTitle(titre);
         }
         if(assignee != null && titre.isEmpty()) {

@@ -13,13 +13,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import java.io.IOException;
-import java.util.Collection;
 
 /**
  * Contrôleur de ressources "users".<br>
