@@ -7,7 +7,6 @@ import fr.univlyon1.m1if.m1if03.dto.user.UserRequestDto;
 import fr.univlyon1.m1if.m1if03.dto.user.UserResponseDto;
 import fr.univlyon1.m1if.m1if03.exceptions.ForbiddenLoginException;
 import fr.univlyon1.m1if.m1if03.model.User;
-import fr.univlyon1.m1if.m1if03.utils.ContentNegotiationHelper;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -63,15 +62,15 @@ public class UserResourceController extends HttpServlet {
         String[] url = UrlUtils.getUrlParts(request);
 
         if (url.length == 1) {// Création d'un utilisateur
+            UserRequestDto requestDto = (UserRequestDto) request.getAttribute("dto");
             try {
-                userRequestDto = (UserRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, UserRequestDto.class);
-                userResource.create(userRequestDto.getLogin(), userRequestDto.getPassword(), userRequestDto.getName());
-                response.setHeader("Location", "users/" + userRequestDto.getLogin());
+                userResource.create(requestDto.getLogin(), requestDto.getPassword(), requestDto.getName());
+                response.setHeader("Location", "users/" + requestDto.getLogin());
                 response.setStatus(HttpServletResponse.SC_CREATED);
             } catch (IllegalArgumentException | ForbiddenLoginException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameAlreadyBoundException e) {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + userRequestDto.getLogin() + " n'est plus disponible.");
+                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + requestDto.getLogin() + " n'est plus disponible.");
             }
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -101,42 +100,41 @@ public class UserResourceController extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("X-test", "doGet");
         String[] url = UrlUtils.getUrlParts(request);
         if (url.length == 1) { // Renvoie la liste de tous les utilisateurs
-            request.setAttribute("users", userResource.readAll());
-            // Transfère la gestion de l'interface à une JSP
-            request.getRequestDispatcher("/WEB-INF/components/users.jsp").include(request, response);
+            request.setAttribute("model", userResource.readAll());
+            request.setAttribute("view", "users");
             return;
         }
         try {
             User user = userResource.readOne(url[1]);
             UserResponseDto userDto = userMapper.toDto(user);
             switch (url.length) {
-                case 2 -> { // Renvoie un DTO d'utilisateur (avec toutes les infos le concernant pour pouvoir le templater dans la vue)
-                    request.setAttribute("userDto", userDto);
-                    request.getRequestDispatcher("/WEB-INF/components/user.jsp").include(request, response);
+                case 2 -> { // Renvoie un DTO d'utilisateur (avec les infos nécessaires pour pouvoir le templater dans la vue)
+                    request.setAttribute("model", ((boolean) request.getAttribute("authorizedUser")) ?
+                            userDto : new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
+                    request.setAttribute("view", "user");
                 }
                 case 3 -> { // Renvoie une propriété d'un utilisateur
                     switch (url[2]) {
                         case "name" -> {
-                            request.setAttribute("userDto", new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
-                            request.getRequestDispatcher("/WEB-INF/components/userProperty.jsp").include(request, response);
+                            request.setAttribute("model", new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
+                            request.setAttribute("view", "userProperty");
                         }
                         case "assignedTodos" -> {
-                            request.setAttribute("userDto", new UserResponseDto(userDto.getLogin(), null, userDto.getAssignedTodos()));
-                            request.getRequestDispatcher("/WEB-INF/components/userProperty.jsp").include(request, response);
+                            request.setAttribute("model", new UserResponseDto(userDto.getLogin(), null, userDto.getAssignedTodos()));
+                            request.setAttribute("view", "userProperty");
                         }
-                        default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                        default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Propriété demandée erronée.");
                     }
                 }
                 default -> { // Redirige vers l'URL qui devrait correspondre à la sous-propriété demandée (qu'elle existe ou pas ne concerne pas ce contrôleur)
                     if (url[2].equals("assignedTodos")) {
                         // Construction de la fin de l'URL vers laquelle rediriger
                         String urlEnd = UrlUtils.getUrlEnd(request, 3);
-                        response.sendRedirect("todos" + urlEnd);
+                        response.sendRedirect(request.getContextPath() + "/todos" + urlEnd);
                     } else {
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Trop de paramètres dans l'URI.");
                     }
                 }
             }
@@ -170,17 +168,16 @@ public class UserResourceController extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] url = UrlUtils.getUrlParts(request);
         String login = url[1];
-
+        UserRequestDto requestDto = (UserRequestDto) request.getAttribute("dto");
         if (url.length == 2) {
             try {
-                userRequestDto = (UserRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, UserRequestDto.class);
-                userResource.update(login, userRequestDto.getPassword(), userRequestDto.getName());
+                userResource.update(login, requestDto.getPassword(), requestDto.getName());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameNotFoundException e) {
                 try {
-                    userResource.create(login, userRequestDto.getPassword(), userRequestDto.getName());
+                    userResource.create(login, requestDto.getPassword(), requestDto.getName());
                     response.setHeader("Location", "users/" + login);
                     response.setStatus(HttpServletResponse.SC_CREATED);
                 } catch (NameAlreadyBoundException ignored) {
