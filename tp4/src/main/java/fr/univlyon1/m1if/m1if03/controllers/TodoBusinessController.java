@@ -3,7 +3,6 @@ package fr.univlyon1.m1if.m1if03.controllers;
 import fr.univlyon1.m1if.m1if03.controllers.resources.TodoBusiness;
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoRequestDto;
-import fr.univlyon1.m1if.m1if03.utils.ContentNegotiationHelper;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
