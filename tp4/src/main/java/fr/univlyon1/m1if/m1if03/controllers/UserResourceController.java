@@ -62,15 +62,15 @@ public class UserResourceController extends HttpServlet {
         String[] url = UrlUtils.getUrlParts(request);
 
         if (url.length == 1) {// Création d'un utilisateur
-            UserRequestDto requestDto = (UserRequestDto) request.getAttribute("dto");
             try {
-                userResource.create(requestDto.getLogin(), requestDto.getPassword(), requestDto.getName());
-                response.setHeader("Location", "users/" + requestDto.getLogin());
+                userRequestDto = (UserRequestDto) request.getAttribute("dto");
+                userResource.create(userRequestDto.getLogin(), userRequestDto.getPassword(), userRequestDto.getName());
+                response.setHeader("Location", "users/" + userRequestDto.getLogin());
                 response.setStatus(HttpServletResponse.SC_CREATED);
             } catch (IllegalArgumentException | ForbiddenLoginException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameAlreadyBoundException e) {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + requestDto.getLogin() + " n'est plus disponible.");
+                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + userRequestDto.getLogin() + " n'est plus disponible.");
             }
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -168,16 +168,16 @@ public class UserResourceController extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] url = UrlUtils.getUrlParts(request);
         String login = url[1];
-        UserRequestDto requestDto = (UserRequestDto) request.getAttribute("dto");
         if (url.length == 2) {
             try {
-                userResource.update(login, requestDto.getPassword(), requestDto.getName());
+                userRequestDto = (UserRequestDto) request.getAttribute("dto");
+                userResource.update(login, userRequestDto.getPassword(), userRequestDto.getName());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameNotFoundException e) {
                 try {
-                    userResource.create(login, requestDto.getPassword(), requestDto.getName());
+                    userResource.create(login, userRequestDto.getPassword(), userRequestDto.getName());
                     response.setHeader("Location", "users/" + login);
                     response.setStatus(HttpServletResponse.SC_CREATED);
                 } catch (NameAlreadyBoundException ignored) {
