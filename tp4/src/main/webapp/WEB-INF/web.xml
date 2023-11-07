@@ -50,6 +50,7 @@
     </filter>
     <filter-mapping>
         <filter-name>ContentNegotiationFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/users/*</url-pattern>
+        <url-pattern>/todos/*</url-pattern>
     </filter-mapping>
 </web-app>

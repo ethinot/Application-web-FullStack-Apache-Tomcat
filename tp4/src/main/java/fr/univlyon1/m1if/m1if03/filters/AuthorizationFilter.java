@@ -64,7 +64,13 @@ public class AuthorizationFilter extends HttpFilter {
         // S'il faut un attribut pour décider plus tard de l'affichage, par exemple d'une partie de la ressource.
         if (Stream.of(RESOURCES_WITH_LIMITATIONS).anyMatch(pattern -> UrlUtils.matchRequest(request, pattern))) {
             if (url[0].equals("users")) {
-                request.setAttribute("authorizedUser", url[1].equals(((User) request.getSession(false).getAttribute("user")).getLogin()));
+                String connectedUserId  = ((User) request.getSession(false).getAttribute("user")).getLogin();
+                if (connectedUserId != null) {
+                    request.setAttribute("authorizedUser", url[1].equals(connectedUserId));
+                } else {
+                    request.setAttribute("authorizedUser", false);
+                }
+
             } else if (url[0].equals("todos")) {
                 try {
                     Todo todo = todoDao.findByHash(Integer.parseInt(url[1]));

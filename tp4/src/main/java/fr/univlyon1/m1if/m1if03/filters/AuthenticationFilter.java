@@ -49,6 +49,5 @@ public class AuthenticationFilter extends HttpFilter {
 
         // 3) Bloque les autres requêtes
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Vous devez vous connecter pour accéder au site.");
-        chain.doFilter(request, response);
     }
 }
