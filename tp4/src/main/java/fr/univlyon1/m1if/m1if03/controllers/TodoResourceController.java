@@ -29,7 +29,7 @@ import java.util.NoSuchElementException;
  *
  * @author Lionel Médini
  */
-@WebServlet(name = "UserResourceController", urlPatterns = {"/todos", "/todos/*"})
+@WebServlet(name = "TodoResourceController", urlPatterns = {"/todos", "/todos/*"})
 public class TodoResourceController extends HttpServlet {
     private TodoDtoMapper todoMapper;
     private TodoResource todoResource;
