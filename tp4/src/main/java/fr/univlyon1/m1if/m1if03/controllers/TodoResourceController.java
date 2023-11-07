@@ -58,7 +58,7 @@ public class TodoResourceController extends HttpServlet {
         String[] url = UrlUtils.getUrlParts(request);
         if (url.length == 1) {
             try {
-                todoRequestDto = (TodoRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, TodoRequestDto.class);
+                todoRequestDto = (TodoRequestDto) request.getAttribute("dto");
                 int todoHash = todoResource.create(todoRequestDto.getTitle(), todoRequestDto.getCreator());
                 response.setHeader("Location", "todos/" + todoHash);
                 response.setStatus(HttpServletResponse.SC_CREATED);
