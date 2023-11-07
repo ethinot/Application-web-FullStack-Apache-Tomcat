@@ -37,7 +37,7 @@ public class TodoBusinessController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (request.getRequestURI().endsWith("toggleStatus")) {
             try {
-                todoRequestDto = (TodoRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, TodoRequestDto.class);
+                todoRequestDto = (TodoRequestDto) request.getAttribute("dto");
                 todoBusiness.modifyStatus(todoRequestDto.getHash());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (NumberFormatException ex1) {
