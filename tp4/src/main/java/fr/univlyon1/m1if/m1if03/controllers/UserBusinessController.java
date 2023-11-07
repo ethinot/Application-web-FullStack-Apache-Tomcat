@@ -48,7 +48,7 @@ public class UserBusinessController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (request.getRequestURI().endsWith("login")) {
-            userRequestDto = (UserRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, UserRequestDto.class);
+            userRequestDto = (UserRequestDto) request.getAttribute("dto");
             if (userRequestDto.getLogin() != null && !userRequestDto.getLogin().isEmpty()) {
                 try {
                     if (userBusiness.userLogin(userRequestDto.getLogin(), userRequestDto.getPassword(), request)) {
