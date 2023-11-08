@@ -74,13 +74,10 @@ public class TodoResourceController extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("X-test", "doGet");
         String[] url = UrlUtils.getUrlParts(request);
         if (url.length == 1) {
-            // Renvoie la collections de todos
-            request.setAttribute("todos", todoResource.readAll());
-            // Transfère la gestion de l'interface à une JSP
-            //request.getRequestDispatcher("/WEB-INF/components/todos.jsp").include(request, response);
+            request.setAttribute("model", todoResource.readAllIds()); // Renvoie la liste des id de tout les todos
+            request.setAttribute("view", "todos");
             return;
         }
         try {
@@ -89,24 +86,25 @@ public class TodoResourceController extends HttpServlet {
             switch (url.length) {
                 case 2 -> {
                     // Renvoie un DTO de todo
-                    request.setAttribute("totoDto", todoDto);
-                    //request.getRequestDispatcher("/WEB-INF/components/todo.jsp").include(request, response);
+                    request.setAttribute("model", ((boolean) request.getAttribute("authorizedUser")) ?
+                            todoDto : new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), todoDto.getAssignee(), todoDto.getCompleted()));
+                    request.setAttribute("view", "todo");
                 }
                 case 3 -> { // Renvoie une propriété d'un todo
                     switch (url[2]) {
                         case "title" -> {
-                            request.setAttribute("todoDto", new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), null, null));
-                            //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
+                            request.setAttribute("model", new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), null, null));
+                            request.setAttribute("view", "userProperty");
                         }
                         case "assignee" -> {
                             // Renvoie l'utilisateur auquel le todo est assigné
-                            request.setAttribute("todoDto", new TodoResponseDto(null, todoDto.getHash(), todoDto.getAssignee(), null));
-                            //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
+                            request.setAttribute("model", new TodoResponseDto(null, todoDto.getHash(), todoDto.getAssignee(), null));
+                            request.setAttribute("view", "userProperty");
                         }
                         case "status" -> {
                             // Renvoie le status du todo
-                            request.setAttribute("todoDto", new TodoResponseDto(null, todoDto.getHash(), null, todoDto.getCompleted()));
-                            //request.getRequestDispatcher("/WEB-INF/components/todoProperty.jsp").include(request, response);
+                            request.setAttribute("model", new TodoResponseDto(null, todoDto.getHash(), null, todoDto.getCompleted()));
+                            request.setAttribute("view", "userProperty");
                         }
                         default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
                     }
