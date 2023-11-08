@@ -1,16 +1,20 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: dor2plat
-  Date: 11/8/23
-  Time: 1:54 PM
-  To change this template use File | Settings | File Templates.
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<!DOCTYPE html>
+<html lang="fr">
 <head>
-    <title>Title</title>
+    <meta charset="UTF-8">
+    <title>Users</title>
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
+    <meta http-equiv="refresh" content="5">
 </head>
 <body>
 
+<h2>Liste des todos</h2>
+<ul>
+    <c:forEach items="${requestScope.todos}" var="todo">
+        <li>${todo.} : <strong><a href="${pageContext.request.contextPath}/users/${user.login}">${user.name}</a></strong></li>
+    </c:forEach>
+</ul>
 </body>
 </html>
