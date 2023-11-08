@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Positive;
 
 import javax.naming.NameNotFoundException;
 import java.util.Collection;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -19,6 +20,7 @@ public class TodoResource {
 
     /**
      * Constructeur avec une injection du DAO nécessaire aux opérations.
+     *
      * @param totoDao le DAO de todo provenant du contexte applicatif
      */
     public TodoResource(TodoDao totoDao) {
@@ -28,9 +30,9 @@ public class TodoResource {
     /**
      * Crée un toto et le place dans le DAO.
      *
-     * @return int Le hash du todo crée
-     * @param titre Titre de la todo créée
+     * @param titre        Titre de la todo créée
      * @param creatorLogin Login de l'utilisateur qui crée la todo
+     * @return int Le hash du todo crée
      * @throws IllegalArgumentException Si le creatorLogin ou titre est null ou vide
      */
     public int create(@NotNull String titre, @NotNull String creatorLogin) throws IllegalArgumentException {
@@ -47,6 +49,10 @@ public class TodoResource {
 
     public Collection<Todo> readAll() {
         return todoDao.findAll();
+    }
+
+    public List<Integer> readAllIds() {
+        return todoDao.getAllIds();
     }
 
     public Todo readOne(@Positive int todoHash) {
