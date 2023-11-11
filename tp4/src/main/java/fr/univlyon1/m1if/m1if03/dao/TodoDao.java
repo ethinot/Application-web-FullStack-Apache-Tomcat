@@ -31,19 +31,22 @@ public class TodoDao extends AbstractListDao<Todo> {
      */
     public Todo findByHash(int hash) {
         Optional<Todo> opt = collection.stream()
-                .filter(todo -> todo.hashCode() == hash)
+                .filter(todo -> todo != null && todo.hashCode() == hash)
                 .findFirst();
         return opt.orElseThrow();
     }
+
+
 
     /**
      * Renvoie la liste des todos auxquels un utilisateur est assigné.
      * @param assignee Le login de l'utilisateur
      * @return Une liste (potentiellement vide) de todos
      */
+    
     public List<Todo> findByAssignee(String assignee) {
         return collection.stream()
-                .filter(todo -> todo.getAssignee() != null && todo.getAssignee().equals(assignee))
+                .filter(todo -> todo != null && todo.getAssignee() != null && todo.getAssignee().equals(assignee))
                 .collect(Collectors.toList());
     }
 
