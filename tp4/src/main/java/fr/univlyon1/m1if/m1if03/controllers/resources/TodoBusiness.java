@@ -28,6 +28,7 @@ public class TodoBusiness {
     public void modifyStatus(@Positive int todoHash) throws IllegalArgumentException, NoSuchElementException {
         boolean actuelStatus = todoDao.findByHash(todoHash).isCompleted();
         todoDao.findByHash(todoHash).setCompleted(!actuelStatus);
+        todoDao.findByHash(todoHash).updateCheckBox();
     }
 
 }
