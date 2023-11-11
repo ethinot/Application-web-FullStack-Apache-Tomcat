@@ -43,7 +43,7 @@ public class TodoDao extends AbstractListDao<Todo> {
      * @param assignee Le login de l'utilisateur
      * @return Une liste (potentiellement vide) de todos
      */
-    
+
     public List<Todo> findByAssignee(String assignee) {
         return collection.stream()
                 .filter(todo -> todo != null && todo.getAssignee() != null && todo.getAssignee().equals(assignee))
