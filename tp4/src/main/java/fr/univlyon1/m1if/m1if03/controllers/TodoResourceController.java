@@ -6,7 +6,6 @@ import fr.univlyon1.m1if.m1if03.dto.todo.TodoDtoMapper;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoRequestDto;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoResponseDto;
 import fr.univlyon1.m1if.m1if03.model.Todo;
-import fr.univlyon1.m1if.m1if03.utils.ContentNegotiationHelper;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -146,7 +145,7 @@ public class TodoResourceController extends HttpServlet {
             // Modifier l'utilisateur assigner au todo OU son titre.
             try {
                 //
-                todoRequestDto = (TodoRequestDto) ContentNegotiationHelper.getDtoFromRequest(request, TodoRequestDto.class);
+                todoRequestDto = (TodoRequestDto) request.getAttribute("dto");
                 todoResource.update(todoHash, todoRequestDto.getTitle(), todoRequestDto.getAssignee());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException | NoSuchElementException ex) {
