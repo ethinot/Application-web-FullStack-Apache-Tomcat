@@ -12,12 +12,14 @@ public class TodoResponseDto {
     private final int hash;
     private final String assignee;
     private final Boolean completed;
+    private final String checkBox; // Todo remove (added for the get tests in postman)
 
-    public TodoResponseDto(String title, int hash, String assignee, Boolean completed) {
+    public TodoResponseDto(String title, int hash, String assignee, Boolean completed, String checkBox) {
         this.title = title;
         this.hash = hash;
         this.assignee = assignee;
         this.completed = completed;
+        this.checkBox = checkBox;
     }
 
     public String getTitle() {
@@ -40,5 +42,9 @@ public class TodoResponseDto {
      */
     public Boolean getCompleted() {
         return completed;
+    }
+
+    public String getCheckBox() {
+        return checkBox;
     }
 }

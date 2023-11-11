@@ -87,23 +87,24 @@ public class TodoResourceController extends HttpServlet {
                 case 2 -> {
                     // Renvoie un DTO de todo
                     request.setAttribute("model", ((boolean) request.getAttribute("authorizedUser")) ?
-                            todoDto : new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), todoDto.getAssignee(), todoDto.getCompleted()));
+                            todoDto : new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), todoDto.getAssignee(),
+                            todoDto.getCompleted(), todoDto.getCheckBox()));
                     request.setAttribute("view", "todo");
                 }
                 case 3 -> { // Renvoie une propriété d'un todo
                     switch (url[2]) {
                         case "title" -> {
-                            request.setAttribute("model", new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), null, null));
+                            request.setAttribute("model", new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), null, null, null));
                             request.setAttribute("view", "userProperty");
                         }
                         case "assignee" -> {
                             // Renvoie l'utilisateur auquel le todo est assigné
-                            request.setAttribute("model", new TodoResponseDto(null, todoDto.getHash(), todoDto.getAssignee(), null));
+                            request.setAttribute("model", new TodoResponseDto(null, todoDto.getHash(), todoDto.getAssignee(), null, null));
                             request.setAttribute("view", "userProperty");
                         }
                         case "status" -> {
                             // Renvoie le status du todo
-                            request.setAttribute("model", new TodoResponseDto(null, todoDto.getHash(), null, todoDto.getCompleted()));
+                            request.setAttribute("model", new TodoResponseDto(null, todoDto.getHash(), null, todoDto.getCompleted(), todoDto.getCheckBox()));
                             request.setAttribute("view", "userProperty");
                         }
                         default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
