@@ -84,11 +84,13 @@ public class TodoResourceController extends HttpServlet {
             TodoResponseDto todoDto = todoMapper.toDto(todo);
             switch (url.length) {
                 case 2 -> {
-                    // Renvoie un DTO de todo
-                    request.setAttribute("model", ((boolean) request.getAttribute("authorizedUser")) ?
-                            todoDto : new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(), todoDto.getAssignee(),
-                            todoDto.getCompleted(), todoDto.getCheckBox()));
-                    request.setAttribute("view", "todo");
+                    if (request.getAttribute("authorizedUser") != null) {
+                        Boolean authorizedUser = (Boolean) request.getAttribute("authorizedUser");
+                        request.setAttribute("model", authorizedUser ?
+                                todoDto : new TodoResponseDto(todoDto.getTitle(), todoDto.getHash(),
+                                todoDto.getAssignee(), todoDto.getCompleted(), todoDto.getCheckBox()));
+                        request.setAttribute("view", "todo");
+                    }
                 }
                 case 3 -> { // Renvoie une propriété d'un todo
                     switch (url[2]) {
