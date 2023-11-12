@@ -1,6 +1,5 @@
 package fr.univlyon1.m1if.m1if03.controllers;
 
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import fr.univlyon1.m1if.m1if03.controllers.resources.UserResource;
 import fr.univlyon1.m1if.m1if03.dao.UserDao;
 import fr.univlyon1.m1if.m1if03.dto.user.UserDtoMapper;
