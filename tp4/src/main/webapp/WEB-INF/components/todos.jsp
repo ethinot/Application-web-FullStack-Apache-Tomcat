@@ -13,7 +13,7 @@
 <h2>Liste des todos</h2>
 <ul>
     <c:forEach items="${model}" var="todo">
-        <li>Todo # ${todo.hashCode()} Titre : ${todo.title}, Name : ${todo.assignee}, status : ${todo.statusToCheckBox()}</a></strong></li>
+        <li>Todo # ${todo} </a></strong></li>
     </c:forEach>
 </ul>
 </body>
