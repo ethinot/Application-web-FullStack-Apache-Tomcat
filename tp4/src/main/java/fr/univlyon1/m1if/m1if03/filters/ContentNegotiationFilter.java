@@ -9,6 +9,7 @@ import fr.univlyon1.m1if.m1if03.utils.BufferlessHttpServletResponseWrapper;
 import fr.univlyon1.m1if.m1if03.utils.ContentNegotiationHelper;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,19 @@ import java.io.UnsupportedEncodingException;
  */
 @WebFilter(filterName = "ContentNegotiationFilter")
 public class ContentNegotiationFilter extends HttpFilter {
+    // Paramètres d'initialisation (web.xml)
+    private String viewPath;
+    private String viewSuffixes;
+    private String defaultMimeType;
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        viewPath = filterConfig.getInitParameter("viewsPath");
+        viewSuffixes = filterConfig.getInitParameter("viewSuffixes");
+        defaultMimeType = filterConfig.getInitParameter("defaultMimeType");
+
+    }
+
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         String[] url = UrlUtils.getUrlParts(request);
@@ -71,11 +85,11 @@ public class ContentNegotiationFilter extends HttpFilter {
                     if (response.getStatus() == HttpServletResponse.SC_OK) {
                         String accept = request.getHeader("Accept");
                         // Type de retour par défaut :
-                        accept = (accept == null || accept.equals("*/*")) ? "text/html" : accept;
+                        accept = (accept == null || accept.equals("*/*")) ? defaultMimeType : accept;
                         switch (ContentNegotiationHelper.parseMimeHeader(accept)) {
                             case "text/html" -> {
                                 response.setHeader("Content-Type", "text/html");
-                                request.getRequestDispatcher("/WEB-INF/components/" + request.getAttribute("view") + ".jsp").include(request, response);
+                                request.getRequestDispatcher(viewPath + request.getAttribute("view") + viewSuffixes).include(request, response);
                             }
                             case "application/xml" -> {
                                 response.setHeader("Content-Type", "application/xml");
