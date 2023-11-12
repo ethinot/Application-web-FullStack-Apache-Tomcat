@@ -2,6 +2,7 @@ package fr.univlyon1.m1if.m1if03.controllers;
 
 import fr.univlyon1.m1if.m1if03.controllers.resources.UserBusiness;
 import fr.univlyon1.m1if.m1if03.dao.UserDao;
+import fr.univlyon1.m1if.m1if03.dto.user.UserDtoMapper;
 import fr.univlyon1.m1if.m1if03.dto.user.UserRequestDto;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -23,6 +24,7 @@ import java.io.IOException;
 @WebServlet(name = "UserBusinessController", urlPatterns = {"/users/login", "/users/logout"})
 public class UserBusinessController extends HttpServlet {
     private UserBusiness userBusiness;
+    private UserDtoMapper userMapper;
     private UserRequestDto userRequestDto;
 
     //<editor-fold desc="Méthode de gestion du cycle de vie">
@@ -31,6 +33,7 @@ public class UserBusinessController extends HttpServlet {
         super.init(config);
         UserDao userDao = (UserDao) config.getServletContext().getAttribute("userDao");
         userBusiness = new UserBusiness(userDao);
+        userMapper = new UserDtoMapper(getServletContext());
     }
     //</editor-fold>
 
@@ -50,7 +53,8 @@ public class UserBusinessController extends HttpServlet {
             userRequestDto = (UserRequestDto) request.getAttribute("dto");
             if (userRequestDto.getLogin() != null && !userRequestDto.getLogin().isEmpty()) {
                 try {
-                    if (userBusiness.userLogin(userRequestDto.getLogin(), userRequestDto.getPassword(), request)) {
+                    if (userBusiness.userLogin(userRequestDto.getLogin(), userRequestDto.getPassword(),
+                            userMapper.getTodoAssignedList(userRequestDto.getLogin()), request, response)) {
                         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                     } else {
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Les login et mot de passe ne correspondent pas.");
