@@ -9,24 +9,9 @@
 </head>
 <body>
 <c:set var="user" value="${model}" scope="request"/>
-
-<h1>Propriété de l'utilisateur ${user.login}</h1>
-<ul>
-    <c:if test="${user.name != null}">
-        <li>Nom : ${user.name}</li>
-    </c:if>
-    <c:if test="${user.assignedTodos != null}">
-        <li>
-            Todos:
-            <ul>
-                <c:forEach items="${model.assignedTodos}" var="assignedTodos">
-                    <li>
-                        <a href="${pageContext.request.contextPath}/todos/${assignedTodos}">${applicationScope.todoDao.findByHash(assignedTodos).title}</a>
-                    </li>
-                </c:forEach>
-            </ul>
-        </li>
-    </c:if>
-</ul>
+<head>
+    <title>User property</title>
+    <p>${user.getLogin()} ${user.getName()} ${user.getAssignedTodos()}</p>
+</head>
 </body>
 </html>

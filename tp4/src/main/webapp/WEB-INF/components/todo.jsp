@@ -10,11 +10,11 @@
 </head>
 <body>
 
-<h2>Liste des todos</h2>
-<ul>
-    <c:forEach items="${requestScope.todos}" var="todo">
-        <li>${todo.} : <strong><a href="${pageContext.request.contextPath}/users/${user.login}">${user.name}</a></strong></li>
-    </c:forEach>
-</ul>
+<c:set var="todo" value="${model}" scope="request"/>
+
+<h2>Todos ${todo.getHash()}</h2>
+
+<p>${todo.getTitle()}, UserAssigne : ${todo.getAssignee()}, ${todo.getCheckBox()}, ${todo.getCompleted()}</p>
+
 </body>
 </html>

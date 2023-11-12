@@ -10,17 +10,15 @@
 <body>
 <c:set var="user" value="${model}" scope="request"/>
 
-<h1>Utilisateur ${user.login}</h1>
+<h1>Utilisateur ${user.getLogin()}</h1>
 <ul>
-    <li>Login : ${user.login}</li>
-    <li>Nom : ${user.name}</li>
+    <li>Login : ${user.getLogin()}</li>
+    <li>Nom : ${user.getName()}</li>
     <c:if test="${requestScope.authorizedUser}">
     <li>
         Todos:
         <ul>
-            <c:forEach items="${user.assignedTodos}" var="todoHash">
-                <li><a href="${pageContext.request.contextPath}/todos/${todoHash}">${applicationScope.todoDao.findByHash(todoHash).title}</a></li>
-            </c:forEach>
+            <li>${user.getAssignedTodos()}</li>
         </ul>
     </li>
     </c:if>
