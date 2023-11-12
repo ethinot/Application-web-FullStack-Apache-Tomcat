@@ -89,7 +89,7 @@ public final class TodosM1if03JwtHelper {
             return null;
         }
     }
-    
+
     /**
      * Crée un token avec les caractéristiques de l'utilisateur.
      *
