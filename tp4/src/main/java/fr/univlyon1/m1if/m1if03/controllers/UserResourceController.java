@@ -1,5 +1,6 @@
 package fr.univlyon1.m1if.m1if03.controllers;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import fr.univlyon1.m1if.m1if03.controllers.resources.UserResource;
 import fr.univlyon1.m1if.m1if03.dao.UserDao;
 import fr.univlyon1.m1if.m1if03.dto.user.UserDtoMapper;
@@ -111,8 +112,11 @@ public class UserResourceController extends HttpServlet {
             UserResponseDto userDto = userMapper.toDto(user);
             switch (url.length) {
                 case 2 -> { // Renvoie un DTO d'utilisateur (avec les infos nécessaires pour pouvoir le templater dans la vue)
-                    request.setAttribute("model", ((boolean) request.getAttribute("authorizedUser")) ?
-                            userDto : new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
+                    boolean isAuthorized = false;
+                    if (request.getAttribute("authorizedUser") != null) {
+                        isAuthorized = (boolean) request.getAttribute("authorizedUser");
+                    }
+                    request.setAttribute("model", isAuthorized ? userDto : new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
                     request.setAttribute("view", "user");
                 }
                 case 3 -> { // Renvoie une propriété d'un utilisateur
