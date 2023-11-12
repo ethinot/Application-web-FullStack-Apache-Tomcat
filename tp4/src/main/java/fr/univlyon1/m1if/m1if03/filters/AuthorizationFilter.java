@@ -69,14 +69,14 @@ public class AuthorizationFilter extends HttpFilter {
                     boolean isAuthorized = request.getAttribute("user").equals(url[1]);
                     request.setAttribute("authorizedUser", isAuthorized);
                 } catch (TokenExpiredException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+                    sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
                 }
             } else if (url[0].equals("todos")) {
                 try {
                     boolean isAuthorized = ((List<Integer>) request.getAttribute("todos")).contains(Integer.parseInt(url[1]));
                     request.setAttribute("authorizedUser", isAuthorized);
                 }  catch (TokenExpiredException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+                    sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
                 }
             }
         }
@@ -89,10 +89,10 @@ public class AuthorizationFilter extends HttpFilter {
                         if (request.getAttribute("user").equals(url[1])) {
                             chain.doFilter(request, response);
                         } else {
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Vous n'avez pas accès aux informations de cet utilisateur.");
+                            sendErrorWithoutCommited(response, HttpServletResponse.SC_FORBIDDEN, "Vous n'avez pas accès aux informations de cet utilisateur.");
                         }
                     } catch (TokenExpiredException e) {
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
                     }
                 }
                 case "todos" -> {
@@ -105,14 +105,14 @@ public class AuthorizationFilter extends HttpFilter {
                             chain.doFilter(request, response);
 
                         } else {
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Vous n'êtes pas assigné.e à ce todo.");
+                            sendErrorWithoutCommited(response, HttpServletResponse.SC_FORBIDDEN, "Vous n'êtes pas assigné.e à ce todo.");
                         }
                     } catch (IllegalArgumentException e) {
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
                     } catch (TokenExpiredException e) {
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
                     } catch (NoSuchElementException e) {
-                        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Le todo " + url[1] + " n'existe pas.");
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_NOT_FOUND, "Le todo " + url[1] + " n'existe pas.");
                     }
                 }
                 default -> // On laisse Tomcat générer un 404.
@@ -120,6 +120,11 @@ public class AuthorizationFilter extends HttpFilter {
             }
         } else {
             chain.doFilter(request, response);
+        }
+    }
+    private void sendErrorWithoutCommited(HttpServletResponse response, int status, String message) throws IOException {
+        if (!response.isCommitted()) {
+            response.sendError(status, message);
         }
     }
 }
