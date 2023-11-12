@@ -4,14 +4,17 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>User</title>
+    <title>Users</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
+    <meta http-equiv="refresh" content="5">
 </head>
 <body>
-<c:set var="user" value="${model}" scope="request"/>
-<head>
-    <title>User property</title>
-    <p>${user.getLogin()} ${user.getName()} ${user.getAssignedTodos()}</p>
-</head>
+
+<h2>Liste des todos</h2>
+<ul>
+    <c:forEach items="${model}" var="todo">
+        <li>Todo # ${todo} </a></strong></li>
+    </c:forEach>
+</ul>
 </body>
 </html>

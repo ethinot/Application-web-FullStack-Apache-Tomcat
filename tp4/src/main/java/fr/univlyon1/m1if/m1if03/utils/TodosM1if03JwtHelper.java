@@ -67,6 +67,27 @@ public final class TodosM1if03JwtHelper {
         }
     }
 
+
+    /**
+     * Function that claiming the user ids list.
+     *
+     * @param token the actuel user token
+     * @param login the login of the user (form the token payload) only for supplementary tests
+     * @return the ids list of todos affect to the user
+     */
+    public static List<Integer> getAssigned(String token, String login) {
+        try {
+            DecodedJWT jwt = JWT.decode(token);
+            if (login.equals(jwt.getSubject())) {
+                return jwt.getClaim("assignedTo").asList(Integer.class);
+            } else {
+                return null;
+            }
+        } catch (JWTVerificationException e) {
+            return null;
+        }
+    }
+
     /**
      * Crée un token avec les caractéristiques de l'utilisateur.
      *

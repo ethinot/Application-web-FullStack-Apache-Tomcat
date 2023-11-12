@@ -10,10 +10,11 @@ import java.util.Objects;
  * Pour créer un TODO_, il faut indiquer l'id de l'utilisateur qui l'a créé.
  */
 public class Todo {
-    private final int hash;
+    private int hash;
     private String title;
     private String assignee = null;
     private boolean completed = false;
+    private String checkBox = "&#x2610;"; // Todo remove (added juste for get tests postman)
 
     /**
      * Création d'un TODO_.
@@ -83,4 +84,21 @@ public class Todo {
     public int hashCode() {
         return this.hash;
     }
+
+    public String getCheckBox() {
+        return this.checkBox;
+    }
+
+    public String statusToCheckBox() {
+        if (!this.completed) {
+            return "&#x2610;";
+        } else {
+            return "&#x2611;";
+        }
+    }
+
+    public void updateCheckBox() {
+        this.checkBox = statusToCheckBox();
+    }
+
 }

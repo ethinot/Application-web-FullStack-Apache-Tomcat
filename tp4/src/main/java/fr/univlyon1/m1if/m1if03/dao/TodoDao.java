@@ -19,9 +19,9 @@ public class TodoDao extends AbstractListDao<Todo> {
     public TodoDao() {
         super();
         //TODO Virer ça...
-        this.add(new Todo("TODO1 : finir le TP3", "toto"));
+        /*this.add(new Todo("TODO1 : finir le TP3", "toto"));
         this.add(new Todo("TODO2 : faire le TP4", "toto"));
-        this.add(new Todo("TODO 3 : dormir", "toto"));
+        this.add(new Todo("TODO 3 : dormir", "toto"));*/
     }
 
     /**
@@ -31,19 +31,33 @@ public class TodoDao extends AbstractListDao<Todo> {
      */
     public Todo findByHash(int hash) {
         Optional<Todo> opt = collection.stream()
-                .filter(todo -> todo.hashCode() == hash)
+                .filter(todo -> todo != null && todo.hashCode() == hash)
                 .findFirst();
         return opt.orElseThrow();
     }
+
+
 
     /**
      * Renvoie la liste des todos auxquels un utilisateur est assigné.
      * @param assignee Le login de l'utilisateur
      * @return Une liste (potentiellement vide) de todos
      */
+
     public List<Todo> findByAssignee(String assignee) {
         return collection.stream()
-                .filter(todo -> todo.getAssignee() != null && todo.getAssignee().equals(assignee))
+                .filter(todo -> todo != null && todo.getAssignee() != null && todo.getAssignee().equals(assignee))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Fonction qui renvois une liste des hash des todos actuel.
+     * @return Une liste des hash associer aux todos
+     */
+    public List<Integer> getAllIds() {
+        return this.collection.stream()
+                .filter(todo -> todo != null)
+                .map(Todo::hashCode)
                 .collect(Collectors.toList());
     }
 }

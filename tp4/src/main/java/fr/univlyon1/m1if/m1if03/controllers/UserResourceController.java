@@ -1,7 +1,9 @@
 package fr.univlyon1.m1if.m1if03.controllers;
 
+import fr.univlyon1.m1if.m1if03.controllers.resources.UserResource;
 import fr.univlyon1.m1if.m1if03.dao.UserDao;
 import fr.univlyon1.m1if.m1if03.dto.user.UserDtoMapper;
+import fr.univlyon1.m1if.m1if03.dto.user.UserRequestDto;
 import fr.univlyon1.m1if.m1if03.dto.user.UserResponseDto;
 import fr.univlyon1.m1if.m1if03.exceptions.ForbiddenLoginException;
 import fr.univlyon1.m1if.m1if03.model.User;
@@ -12,13 +14,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import java.io.IOException;
-import java.util.Collection;
 
 /**
  * Contrôleur de ressources "users".<br>
@@ -36,6 +36,7 @@ import java.util.Collection;
 public class UserResourceController extends HttpServlet {
     private UserDtoMapper userMapper;
     private UserResource userResource;
+    private UserRequestDto userRequestDto;
 
     //<editor-fold desc="Méthode de gestion du cycle de vie">
     @Override
@@ -58,23 +59,18 @@ public class UserResourceController extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setHeader("X-test", "doPost");
-
         String[] url = UrlUtils.getUrlParts(request);
 
         if (url.length == 1) {// Création d'un utilisateur
-            // TODO Parsing des paramètres "old school" ; sera amélioré dans la partie négociation de contenus...
-            String login = request.getParameter("login");
-            String password = request.getParameter("password");
-            String name = request.getParameter("name");
             try {
-                userResource.create(login, password, name);
-                response.setHeader("Location", "users/" + login);
+                userRequestDto = (UserRequestDto) request.getAttribute("dto");
+                userResource.create(userRequestDto.getLogin(), userRequestDto.getPassword(), userRequestDto.getName());
+                response.setHeader("Location", "users/" + userRequestDto.getLogin());
                 response.setStatus(HttpServletResponse.SC_CREATED);
             } catch (IllegalArgumentException | ForbiddenLoginException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameAlreadyBoundException e) {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + login + " n'est plus disponible.");
+                response.sendError(HttpServletResponse.SC_CONFLICT, "Le login " + userRequestDto.getLogin() + " n'est plus disponible.");
             }
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -104,42 +100,44 @@ public class UserResourceController extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("X-test", "doGet");
         String[] url = UrlUtils.getUrlParts(request);
         if (url.length == 1) { // Renvoie la liste de tous les utilisateurs
-            request.setAttribute("users", userResource.readAll());
-            // Transfère la gestion de l'interface à une JSP
-            request.getRequestDispatcher("/WEB-INF/components/users.jsp").include(request, response);
+            request.setAttribute("model", userResource.readAll());
+            request.setAttribute("view", "users");
             return;
         }
         try {
             User user = userResource.readOne(url[1]);
             UserResponseDto userDto = userMapper.toDto(user);
             switch (url.length) {
-                case 2 -> { // Renvoie un DTO d'utilisateur (avec toutes les infos le concernant pour pouvoir le templater dans la vue)
-                    request.setAttribute("userDto", userDto);
-                    request.getRequestDispatcher("/WEB-INF/components/user.jsp").include(request, response);
+                case 2 -> { // Renvoie un DTO d'utilisateur (avec les infos nécessaires pour pouvoir le templater dans la vue)
+                    boolean isAuthorized = false;
+                    if (request.getAttribute("authorizedUser") != null) {
+                        isAuthorized = (boolean) request.getAttribute("authorizedUser");
+                    }
+                    request.setAttribute("model", isAuthorized ? userDto : new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
+                    request.setAttribute("view", "user");
                 }
                 case 3 -> { // Renvoie une propriété d'un utilisateur
                     switch (url[2]) {
                         case "name" -> {
-                            request.setAttribute("userDto", new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
-                            request.getRequestDispatcher("/WEB-INF/components/userProperty.jsp").include(request, response);
+                            request.setAttribute("model", new UserResponseDto(userDto.getLogin(), userDto.getName(), null));
+                            request.setAttribute("view", "userProperty");
                         }
                         case "assignedTodos" -> {
-                            request.setAttribute("userDto", new UserResponseDto(userDto.getLogin(), null, userDto.getAssignedTodos()));
-                            request.getRequestDispatcher("/WEB-INF/components/userProperty.jsp").include(request, response);
+                            request.setAttribute("model", new UserResponseDto(userDto.getLogin(), null, userDto.getAssignedTodos()));
+                            request.setAttribute("view", "userProperty");
                         }
-                        default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                        default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Propriété demandée erronée.");
                     }
                 }
                 default -> { // Redirige vers l'URL qui devrait correspondre à la sous-propriété demandée (qu'elle existe ou pas ne concerne pas ce contrôleur)
                     if (url[2].equals("assignedTodos")) {
                         // Construction de la fin de l'URL vers laquelle rediriger
                         String urlEnd = UrlUtils.getUrlEnd(request, 3);
-                        response.sendRedirect("todos" + urlEnd);
+                        response.sendRedirect(request.getContextPath() + "/todos" + urlEnd);
                     } else {
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Trop de paramètres dans l'URI.");
                     }
                 }
             }
@@ -173,19 +171,16 @@ public class UserResourceController extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] url = UrlUtils.getUrlParts(request);
         String login = url[1];
-        // TODO Parsing des paramètres "old school" ; sera amélioré dans la partie négociation de contenus...
-        String password = request.getParameter("password");
-        String name = request.getParameter("name");
-
         if (url.length == 2) {
             try {
-                userResource.update(login, password, name);
+                userRequestDto = (UserRequestDto) request.getAttribute("dto");
+                userResource.update(login, userRequestDto.getPassword(), userRequestDto.getName());
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             } catch (NameNotFoundException e) {
                 try {
-                    userResource.create(login, password, name);
+                    userResource.create(login, userRequestDto.getPassword(), userRequestDto.getName());
                     response.setHeader("Location", "users/" + login);
                     response.setStatus(HttpServletResponse.SC_CREATED);
                 } catch (NameAlreadyBoundException ignored) {
@@ -229,109 +224,4 @@ public class UserResourceController extends HttpServlet {
         }
     }
     //</editor-fold>
-
-    //<editor-fold desc="Nested class qui interagit avec le DAO">
-    /**
-     * Nested class qui réalise les opérations "simples" (CRUD) de gestion des ressources de type <code>User</code>.
-     * Son utilité est surtout de prendre en charge les différentes exceptions qui peuvent être levées par le DAO.
-     *
-     * @author Lionel Médini
-     */
-    private static class UserResource {
-        private final UserDao userDao;
-
-        /**
-         * Constructeur avec une injection du DAO nécessaire aux opérations.
-         * @param userDao le DAO d'utilisateurs provenant du contexte applicatif
-         */
-        UserResource(UserDao userDao) {
-            this.userDao = userDao;
-        }
-
-        /**
-         * Crée un utilisateur et le place dans le DAO.
-         *
-         * @param login    Login de l'utilisateur à créer
-         * @param password Password de l'utilisateur à créer
-         * @param name      Nom de l'utilisateur à créer
-         * @throws IllegalArgumentException Si le login est null ou vide ou si le password est null
-         * @throws NameAlreadyBoundException Si le login existe déjà
-         * @throws ForbiddenLoginException Si le login est "login" ou "logout" (ce qui mènerait à un conflit d'URLs)
-         */
-        public void create(@NotNull String login, @NotNull String password, String name)
-                throws IllegalArgumentException, NameAlreadyBoundException, ForbiddenLoginException {
-            if (login == null || login.isEmpty()) {
-                throw new IllegalArgumentException("Le login ne doit pas être null ou vide.");
-            }
-            if (password == null) {
-                throw new IllegalArgumentException("Le password ne doit pas être null.");
-            }
-            // Protection contre les valeurs de login qui poseraient problème au niveau des URLs
-            if (login.equals("login") || login.equals("logout")) {
-                throw new ForbiddenLoginException();
-            }
-            userDao.add(new User(login, password, name));
-        }
-
-        /**
-         * Renvoie les IDs de tous les utilisateurs présents dans le DAO.
-         *
-         * @return L'ensemble des IDs sous forme d'un <code>Set&lt;Serializable&gt;</code>
-         */
-        public Collection<User> readAll() {
-            return userDao.findAll();
-        }
-
-        /**
-         * Renvoie un utilisateur s'il est présent dans le DAO.
-         *
-         * @param login Le login de l'utilisateur demandé
-         * @return L'instance de <code>User</code> correspondant au login
-         * @throws IllegalArgumentException Si le login est null ou vide
-         * @throws NameNotFoundException Si le login ne correspond à aucune entrée dans le DAO
-         * @throws InvalidNameException Ne doit pas arriver car les clés du DAO user sont des strings
-         */
-        public User readOne(@NotNull String login) throws IllegalArgumentException, NameNotFoundException, InvalidNameException {
-            if (login == null || login.isEmpty()) {
-                throw new IllegalArgumentException("Le login ne doit pas être null ou vide.");
-            }
-            return userDao.findOne(login);
-        }
-
-        /**
-         * Met à jour un utilisateur en fonction des paramètres envoyés.<br>
-         * Si l'un des paramètres est nul ou vide, le champ correspondant n'est pas mis à jour.
-         *
-         * @param login     Le login de l'utilisateur à mettre à jour
-         * @param password Le password à modifier. Ou pas.
-         * @param name      Le nom à modifier. Ou pas.
-         * @throws IllegalArgumentException Si le login est null ou vide
-         * @throws InvalidNameException Ne doit pas arriver car les clés du DAO user sont des strings
-         * @throws NameNotFoundException Si le login ne correspond pas à un utilisateur existant
-         */
-        public void update(@NotNull String login, String password, String name) throws IllegalArgumentException, InvalidNameException, NameNotFoundException {
-            User user = readOne(login);
-            if (password != null && !password.isEmpty()) {
-                user.setPassword(password);
-            }
-            if (name != null && !name.isEmpty()) {
-                user.setName(name);
-            }
-        }
-
-        /**
-         * Supprime un utilisateur dans le DAO.
-         *
-         * @param login Le login de l'utilisateur à supprimer
-         * @throws IllegalArgumentException Si le login est null ou vide
-         * @throws NameNotFoundException Si le login ne correspond à aucune entrée dans le DAO
-         * @throws InvalidNameException Ne doit pas arriver car les clés du DAO user sont des strings
-         */
-        public void delete(@NotNull String login) throws IllegalArgumentException, NameNotFoundException, InvalidNameException {
-            if (login == null || login.isEmpty()) {
-                throw new IllegalArgumentException("Le login ne doit pas être null ou vide.");
-            }
-            userDao.deleteById(login);
-        }
-    }
 }

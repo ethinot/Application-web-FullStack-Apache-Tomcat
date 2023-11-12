@@ -1,8 +1,8 @@
 package fr.univlyon1.m1if.m1if03.filters;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
-import fr.univlyon1.m1if.m1if03.model.Todo;
-import fr.univlyon1.m1if.m1if03.model.User;
+import fr.univlyon1.m1if.m1if03.dto.todo.TodoRequestDto;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 /**
@@ -34,15 +36,9 @@ public class AuthorizationFilter extends HttpFilter {
             {"PUT", "users", "*", "password"},
             {"POST", "users", "*", "name"},
             {"PUT", "users", "*", "name"},
-            {"*", "users", "*", "todos"},
-            {"*", "users", "*", "todos", "*"},
-            {"POST", "todos", "*"},
-            {"PUT", "todos", "*"},
-            {"GET", "todos", "*", "assignee"},
-            {"DELETE", "todos", "*", "assignee"},
-            {"GET", "todos", "*", "assignee", "*"},
-            {"POST", "todos", "*", "status"},
-            {"PUT", "todos", "*", "status"}
+            {"*", "users", "*", "assignedTodos"},
+            {"POST", "todos", "toggleStatus"},
+            {"*", "todos", "*", "assignee"}
     };
 
     // Liste des ressources qui
@@ -58,7 +54,7 @@ public class AuthorizationFilter extends HttpFilter {
     @Override
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         // Si l'utilisateur n'est pas authentifié (mais que la requête a passé le filtre d'authentification), c'est que ce filtre est sans objet
-        if(request.getSession(false) == null || request.getSession(false).getAttribute("user") == null) {
+        if(request.getAttribute("user") == null) {
             chain.doFilter(request, response);
             return;
         }
@@ -69,10 +65,19 @@ public class AuthorizationFilter extends HttpFilter {
         // S'il faut un attribut pour décider plus tard de l'affichage, par exemple d'une partie de la ressource.
         if (Stream.of(RESOURCES_WITH_LIMITATIONS).anyMatch(pattern -> UrlUtils.matchRequest(request, pattern))) {
             if (url[0].equals("users")) {
-                request.setAttribute("authorizedUser", url[1].equals(((User) request.getSession(false).getAttribute("user")).getLogin()));
+                try {
+                    boolean isAuthorized = request.getAttribute("user").equals(url[1]);
+                    request.setAttribute("authorizedUser", isAuthorized);
+                } catch (TokenExpiredException e) {
+                    sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+                }
             } else if (url[0].equals("todos")) {
-                Todo todo = todoDao.findByHash(Integer.parseInt(url[1]));
-                request.setAttribute("authorizedUser", todo.getAssignee() != null && todo.getAssignee().equals(request.getSession(false).getAttribute("user")));
+                try {
+                    boolean isAuthorized = ((List<Integer>) request.getAttribute("todos")).contains(Integer.parseInt(url[1]));
+                    request.setAttribute("authorizedUser", isAuthorized);
+                }  catch (TokenExpiredException e) {
+                    sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+                }
             }
         }
 
@@ -80,18 +85,36 @@ public class AuthorizationFilter extends HttpFilter {
         if (Stream.of(RESOURCES_WITH_AUTHORIZATION).anyMatch(pattern -> UrlUtils.matchRequest(request, pattern))) {
             switch (url[0]) {
                 case "users" -> {
-                    if (url[1].equals(((User) request.getSession(false).getAttribute("user")).getLogin())) {
-                        chain.doFilter(request, response);
-                    } else {
-                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Vous n'avez pas accès aux informations de cet utilisateur.");
+                    try {
+                        if (request.getAttribute("user").equals(url[1])) {
+                            chain.doFilter(request, response);
+                        } else {
+                            sendErrorWithoutCommited(response, HttpServletResponse.SC_FORBIDDEN, "Vous n'avez pas accès aux informations de cet utilisateur.");
+                        }
+                    } catch (TokenExpiredException e) {
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
                     }
                 }
                 case "todos" -> {
-                    Todo todo = todoDao.findByHash(Integer.parseInt(url[1]));
-                    if (todo.getAssignee() != null && todo.getAssignee().equals(request.getSession(false).getAttribute("user"))) {
-                        chain.doFilter(request, response);
-                    } else {
-                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Vous n'êtes pas assigné.e à ce todo.");
+                    try {
+                        // Dans le cas du POST -> toggleStatus, le hash est dans le corps de la requête.
+                        // TODO Parsing des paramètres "old school". Sera amélioré par la suite.
+                        //String todoHash = (url[1] != null && url[1].equals("toggleStatus")) ? request.getParameter("hash") : url[1];
+                        //Todo todo = todoDao.findByHash(Integer.parseInt(todoHash));
+                        TodoRequestDto todoRequestDto = (TodoRequestDto) request.getAttribute("dto");
+                        if (todoRequestDto != null && todoRequestDto.getAssignee() != null &&
+                                todoRequestDto.getAssignee().equals(request.getAttribute("user"))) {
+                            chain.doFilter(request, response);
+
+                        } else {
+                            sendErrorWithoutCommited(response, HttpServletResponse.SC_FORBIDDEN, "Vous n'êtes pas assigné.e à ce todo.");
+                        }
+                    } catch (IllegalArgumentException e) {
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                    } catch (TokenExpiredException e) {
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+                    } catch (NoSuchElementException e) {
+                        sendErrorWithoutCommited(response, HttpServletResponse.SC_NOT_FOUND, "Le todo " + url[1] + " n'existe pas.");
                     }
                 }
                 default -> // On laisse Tomcat générer un 404.
@@ -99,6 +122,11 @@ public class AuthorizationFilter extends HttpFilter {
             }
         } else {
             chain.doFilter(request, response);
+        }
+    }
+    private void sendErrorWithoutCommited(HttpServletResponse response, int status, String message) throws IOException {
+        if (!response.isCommitted()) {
+            response.sendError(status, message);
         }
     }
 }

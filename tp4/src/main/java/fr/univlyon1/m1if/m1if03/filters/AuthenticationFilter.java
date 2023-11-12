@@ -1,5 +1,8 @@
 package fr.univlyon1.m1if.m1if03.filters;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import fr.univlyon1.m1if.m1if03.utils.TodosM1if03JwtHelper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -8,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Filtre d'authentification.
@@ -39,15 +43,33 @@ public class AuthenticationFilter extends HttpFilter {
         }
 
         // 2) Traite les requêtes qui doivent être authentifiées
-        // Note :
-        //   le paramètre false dans request.getSession(false) permet de récupérer null si la session n'est pas déjà créée.
-        //   Sinon, l'appel de la méthode getSession() la crée automatiquement.
-        if(request.getSession(false) != null && request.getSession(false).getAttribute("user") != null) {
-            chain.doFilter(request, response);
-            return;
+        String authorizationHeader = request.getHeader("Authorization"); // accède au token
+        try {
+            if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7); // length of "Bearer" for getting the real token
+                String login = TodosM1if03JwtHelper.verifyToken(token, request);
+                List<Integer> todos = TodosM1if03JwtHelper.getAssigned(token, login);
+                if (login != null) {
+                    request.setAttribute("user", login);
+                    request.setAttribute("todos", todos);
+                }
+                chain.doFilter(request, response);
+                return;
+            }
+        } catch (NullPointerException e) {
+            sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " n'existe pas !");
+        } catch (TokenExpiredException e) {
+            sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " à expiré !");
+        } catch (JWTVerificationException e) {
+            sendErrorWithoutCommited(response, HttpServletResponse.SC_UNAUTHORIZED, "Le token " + e + " est invalide !");
         }
 
-        // 3) Bloque les autres requêtes
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Vous devez vous connecter pour accéder au site.");
     }
+    private void sendErrorWithoutCommited(HttpServletResponse response, int status, String message) throws IOException {
+       if (!response.isCommitted()) {
+           response.sendError(status, message);
+       }
+    }
 }
+

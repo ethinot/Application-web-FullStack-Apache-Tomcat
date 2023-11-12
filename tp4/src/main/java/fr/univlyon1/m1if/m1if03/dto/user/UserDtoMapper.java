@@ -40,16 +40,36 @@ public class UserDtoMapper {
      * @return Un <code>UserResponseDto</code> avec tous les champs positionnés
      */
     public UserResponseDto toDto(User user) {
-        //TODO Virer ça...
-        todoDao.findAll().forEach(todo -> todo.setAssignee(user.getLogin()));
-        List<Integer> ownedTodos =
-                todoDao.findByAssignee(user.getLogin())
-                        .stream()
-                        .map(Todo::hashCode)
-                        .collect(toList());
+        todoDao.findAll().forEach(todo -> {
+            if (todo != null) {
+                todo.setAssignee(user.getLogin());
+            }
+        });
+
+        List<Integer> ownedTodos = todoDao.findByAssignee(user.getLogin())
+                .stream()
+                .filter(todo -> todo != null)
+                .map(Todo::hashCode)
+                .collect(toList());
 
         return new UserResponseDto(user.getLogin(), user.getName(), ownedTodos);
     }
+
+    /**
+     * This method return an integer list that contains id of todos assigne to a specific user.
+     *
+     * @param userLogin the login of the assigned user
+     * @return A list of integer represent ids of assigned user todos
+     */
+    public List<Integer> getTodoAssignedList(String userLogin) {
+        List<Integer> ownedTodos = todoDao.findByAssignee(userLogin)
+                .stream()
+                .filter(todo -> todo != null)
+                .map(Todo::hashCode)
+                .collect(toList());
+        return ownedTodos;
+    }
+
 
     /**
      * Renvoie une instance de <code>User</code> à partir d'un objet métier <code>UserRequestDto</code>.

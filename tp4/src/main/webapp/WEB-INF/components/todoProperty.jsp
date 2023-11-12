@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
 </head>
 <body>
-<c:set var="user" value="${model}" scope="request"/>
+<c:set var="todo" value="${model}" scope="request"/>
 <head>
-    <title>User property</title>
-    <p>${user.getLogin()} ${user.getName()} ${user.getAssignedTodos()}</p>
+    <title>Todo property</title>
+    <p>${todo.getHash()} , ${todo.getTitle()}, UserAssigne : ${todo.getAssignee()}, ${todo.getCheckBox()}, ${todo.getCompleted()}</p>
 </head>
 </body>
 </html>
