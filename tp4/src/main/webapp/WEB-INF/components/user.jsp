@@ -18,7 +18,11 @@
     <li>
         Todos:
         <ul>
-            <li>${user.getAssignedTodos()}</li>
+        <c:forEach items="${user.getAssignedTodos()}" var="todo">
+            <li>
+                <a href="${pageContext.request.contextPath}/todos/${applicationScope.todoDao.findByHash(todo).getAssignee()}">ID ${todo} ${applicationScope.todoDao.findByHash(todo).title}</a>
+            </li>
+        </c:forEach>
         </ul>
     </li>
     </c:if>

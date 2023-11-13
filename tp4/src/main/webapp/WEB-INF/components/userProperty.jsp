@@ -11,7 +11,14 @@
 <c:set var="user" value="${model}" scope="request"/>
 <head>
     <title>User property</title>
-    <p>${user.getLogin()} ${user.getName()} ${user.getAssignedTodos()}</p>
+    <p>${user.getLogin()} ${user.getName()}</p>
+    <ul>
+        <c:forEach items="${user.getAssignedTodos()}" var="todo">
+            <li>
+                <a href="${pageContext.request.contextPath}/todos/${applicationScope.todoDao.findByHash(todo).getAssignee()}">ID ${todo} ${applicationScope.todoDao.findByHash(todo).title}</a>
+            </li>
+        </c:forEach>
+    </ul>
 </head>
 </body>
 </html>

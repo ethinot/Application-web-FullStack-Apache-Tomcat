@@ -11,7 +11,7 @@
 <c:set var="todo" value="${model}" scope="request"/>
 <head>
     <title>Todo property</title>
-    <p>${todo.getHash()} , ${todo.getTitle()}, UserAssigne : ${todo.getAssignee()}, ${todo.getCheckBox()}, ${todo.getCompleted()}</p>
+    <p>${todo.getHash()} , ${todo.getTitle()}, UserAssigne : <a href="${pageContext.request.contextPath}/users/${todo.getAssignee()}">${todo.getAssignee()}</a>, ${todo.getCheckBox()}, ${todo.getCompleted()}</p>
 </head>
 </body>
 </html>
