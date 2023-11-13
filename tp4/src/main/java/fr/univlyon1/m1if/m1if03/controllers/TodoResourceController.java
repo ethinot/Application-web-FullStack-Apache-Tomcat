@@ -6,6 +6,7 @@ import fr.univlyon1.m1if.m1if03.dto.todo.TodoDtoMapper;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoRequestDto;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoResponseDto;
 import fr.univlyon1.m1if.m1if03.model.Todo;
+import fr.univlyon1.m1if.m1if03.utils.TodosM1if03JwtHelper;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import javax.naming.NameNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -147,6 +149,11 @@ public class TodoResourceController extends HttpServlet {
             try {
                 todoRequestDto = (TodoRequestDto) request.getAttribute("dto");
                 todoResource.update(todoHash, todoRequestDto.getTitle(), todoRequestDto.getAssignee());
+                if (todoRequestDto.getAssignee() != null) {
+                    List<Integer> assignedTo = todoMapper.getTodoAssignedList(todoRequestDto.getAssignee());
+                    String userToken = TodosM1if03JwtHelper.generateToken(todoRequestDto.getAssignee(), assignedTo, request);
+                    response.addHeader("Authorization", "Bearer " + userToken);
+                }
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } catch (IllegalArgumentException | NoSuchElementException ex) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
