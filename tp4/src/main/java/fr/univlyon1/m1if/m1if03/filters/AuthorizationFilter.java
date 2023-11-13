@@ -3,6 +3,7 @@ package fr.univlyon1.m1if.m1if03.filters;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
 import fr.univlyon1.m1if.m1if03.dto.todo.TodoRequestDto;
+import fr.univlyon1.m1if.m1if03.model.Todo;
 import fr.univlyon1.m1if.m1if03.utils.UrlUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -59,7 +60,7 @@ public class AuthorizationFilter extends HttpFilter {
             return;
         }
 
-        TodoDao todoDao = (TodoDao) this.getServletContext().getAttribute("todoDao");
+        TodoDao todoDao = (TodoDao) getServletContext().getAttribute("todoDao");
         String[] url = UrlUtils.getUrlParts(request);
 
         // S'il faut un attribut pour décider plus tard de l'affichage, par exemple d'une partie de la ressource.
@@ -97,17 +98,18 @@ public class AuthorizationFilter extends HttpFilter {
                 }
                 case "todos" -> {
                     try {
-                        // Dans le cas du POST -> toggleStatus, le hash est dans le corps de la requête.
-                        // TODO Parsing des paramètres "old school". Sera amélioré par la suite.
-                        //String todoHash = (url[1] != null && url[1].equals("toggleStatus")) ? request.getParameter("hash") : url[1];
-                        //Todo todo = todoDao.findByHash(Integer.parseInt(todoHash));
-                        TodoRequestDto todoRequestDto = (TodoRequestDto) request.getAttribute("dto");
-                        if (todoRequestDto != null && todoRequestDto.getAssignee() != null &&
-                                todoRequestDto.getAssignee().equals(request.getAttribute("user"))) {
-                            chain.doFilter(request, response);
+                        Todo todo;
 
+                        if (url[1].equals("toggleStatus")) {
+                            TodoRequestDto requestDto = (TodoRequestDto) request.getAttribute("dto");
+                            todo = todoDao.findByHash(requestDto.getHash());
                         } else {
-                            sendErrorWithoutCommited(response, HttpServletResponse.SC_FORBIDDEN, "Vous n'êtes pas assigné.e à ce todo.");
+                            todo = todoDao.findByHash(Integer.parseInt(url[1]));
+                        }
+                        if (todo.getAssignee() != null && todo.getAssignee().equals(request.getAttribute("user"))) {
+                            chain.doFilter(request, response);
+                        } else {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Vous n'êtes pas assigné.e ce ce todo !");
                         }
                     } catch (IllegalArgumentException e) {
                         sendErrorWithoutCommited(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
