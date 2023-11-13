@@ -4,7 +4,10 @@ import fr.univlyon1.m1if.m1if03.dao.TodoDao;
 import fr.univlyon1.m1if.m1if03.model.Todo;
 import jakarta.servlet.ServletContext;
 
+import java.util.List;
 import java.util.NoSuchElementException;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Application du pattern DTO.<br>
@@ -54,5 +57,20 @@ public class TodoDtoMapper {
             todo = new Todo(todoRequestDto.getTitle());
         }
         return todo;
+    }
+
+    /**
+     * This method return an integer list that contains id of todos assigne to a specific user.
+     *
+     * @param userLogin the login of the assigned user
+     * @return A list of integer represent ids of assigned user todos
+     */
+    public List<Integer> getTodoAssignedList(String userLogin) {
+        List<Integer> ownedTodos = todoDao.findByAssignee(userLogin)
+                .stream()
+                .filter(todo -> todo != null)
+                .map(Todo::hashCode)
+                .collect(toList());
+        return ownedTodos;
     }
 }

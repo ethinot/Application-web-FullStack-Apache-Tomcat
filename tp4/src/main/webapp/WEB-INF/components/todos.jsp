@@ -4,7 +4,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Users</title>
+    <title>Todos</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
     <meta http-equiv="refresh" content="5">
 </head>
@@ -12,8 +12,10 @@
 
 <h2>Liste des todos</h2>
 <ul>
-    <c:forEach items="${model}" var="todo">
-        <li>Todo # ${todo} </a></strong></li>
+    <c:forEach items="${model}" var="todoHash">
+        <li>
+            <a href="${request.getContextPath()}/todos/${applicationScope.todoDao.findByHash(todoHash).getAssignee()}">${todoHash}</a>
+        </li>
     </c:forEach>
 </ul>
 </body>

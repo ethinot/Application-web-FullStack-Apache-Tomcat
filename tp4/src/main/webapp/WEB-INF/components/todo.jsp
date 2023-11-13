@@ -12,9 +12,9 @@
 
 <c:set var="todo" value="${model}" scope="request"/>
 
-<h2>Todos ${todo.getHash()}</h2>
+<h1>Todo n° ${todo.getHash()}</h1>
+<p>${todo.getHash()} , ${todo.getTitle()}, UserAssigne : <a href="${pageContext.request.contextPath}/users/${todo.getAssignee()}">${todo.getAssignee()}</a>, ${todo.getCheckBox()}, ${todo.getCompleted()}</p>
 
-<p>${todo.getTitle()}, UserAssigne : ${todo.getAssignee()}, ${todo.getCheckBox()}, ${todo.getCompleted()}</p>
 
 </body>
 </html>
