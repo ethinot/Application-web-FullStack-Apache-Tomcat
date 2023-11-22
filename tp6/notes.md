@@ -31,4 +31,7 @@
 
 ## 2 - APIs de performance
 
+* Pour l'app shell chercher la première image par exemple (finit)
+* Pour le CRP regarder par exemple le première script envoyer 
+
 ### 2.1 - Opérations à réaliser
