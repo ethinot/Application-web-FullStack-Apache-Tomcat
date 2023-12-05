@@ -2,6 +2,15 @@
  * Placez ici les scripts qui seront exécutés côté client pour rendre l'application côté client fonctionnelle.
  */
 
+const view = {
+    "name": {
+        "first": "Michael",
+        "last": "Jackson"
+    },
+    "age": "RIP"
+}
+
+
 // <editor-fold desc="Gestion de l'affichage">
 /**
  * Fait basculer la visibilité des éléments affichés quand le hash change.<br>
@@ -112,10 +121,94 @@ function connect() {
         })
 }
 
+function renderTemplate(scriptId, data, targetId) {
+    var template = document.getElementById(scriptId).innerHTML;
+    document.getElementById(targetId).innerHTML = Mustache.render(template, data);
+}
+
+/**
+function renderTemplate(scriptId, data, targetId) {
+    fetch('template.mustache')
+        .then((response) => response.text())
+        .then((template) => {
+            const rendered = Mustache.render(template, data);
+            document.getElementById(targetId).innerHTML = rendered;
+        });
+}
+*/
+
 function deco() {
-    // TODO envoyer la requête de déconnexion
-    location.hash = "#index";
+
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    const requestConfig = {
+        method : "POST",
+        header : headers,
+        mode : "cors"
+    };
+    fetch(baseUrl + "users/logout", requestConfig)
+        .then((response) => {
+            if (response.status === 204) {
+                displayRequestResult("Déconnexion réussie", "alert-success");
+                location.hash = "#index";
+            } else {
+                displayRequestResult("Déconnexion échouée", "alert-danger");
+                throw new Error("Bad response code (" + response.status + ").");
+            }
+        })
+        .catch((err) => {
+            console.error("In logout " + err);
+        })
     displayConnected(false);
 }
+
+function getAllUsers () {
+    const headers = new Headers();
+    const requestConfig = {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        mode : "cors",
+        accept: "application/json"
+    };
+    fetch(baseUrl + "users", requestConfig)
+        .then((response) => {
+                return response.json()
+            }
+            ).then(res => {
+                console.log(res);
+            });
+    /*const requestConfig = {
+        credential: "include",
+        accept : "application/json"
+
+    }
+    const response = fetch(baseUrl + "user", requestConfig);
+    const users = response.json();
+    console.log(users);*/
+}
+
+function getConnectedUser () {
+
+    const headers = new Headers();
+    headers.append("Content-Type", "text/html");
+    const requestConfig = {
+        method: "GET",
+        header: headers,
+        mode: "cors"
+    }
+    fetch(baseUrl + "users/" , requestConfig)
+        .then((response) => {
+            if(response.status === 204) {
+
+            }
+        })
+
+
+}
+
 setInterval(getNumberOfUsers, 5000);
+
 // </editor-fold>

@@ -30,6 +30,7 @@
         <ul class="nav flex-column">
             <li class="nav-item"><a href='#index'>Accueil</a></li>
             <li class="nav-item"><a href='#connect'>Connexion</a></li>
+            <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
             <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
             <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
         </ul>
@@ -73,11 +74,18 @@
 
         <section id='monCompte' class='inactive'>
             <h2>Mon compte</h2>
+            <script>document.addEventListener("DOMContentLoaded", function (event) {
+                renderTemplate("firstnameTemplate", view, "login");
+                renderTemplate("lastnameTemplate", view, "nom_update_input");
+            })
+            </script>
+            <script id="firstnameTemplate" type="text/template">{{ name.first }}</script>
+            <script id="lastnameTemplate" type="text/template">{{ name.last }}</script>
             <table id='compteList'>
-                <tr><td>Login : </td><td><span id="login">toto</span></td></tr>
+                <tr><td>Login : </td><td><span id="login"></span></td></tr>
                 <tr>
                     <td>Nom : </td>
-                    <td><span id="nom_update_input" contenteditable="true">Toto</span></td>
+                    <td><span id="nom_update_input" contenteditable="true"></span></td>
                     <td><button type="button" class="btn btn-secondary" id="user_update_button">Modifier</button></td>
                 </tr>
                 <tr>
