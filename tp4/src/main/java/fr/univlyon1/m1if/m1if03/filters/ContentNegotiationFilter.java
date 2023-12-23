@@ -44,6 +44,10 @@ public class ContentNegotiationFilter extends HttpFilter {
 
         Class<?> dtoClass;
         switch (request.getMethod()) {
+            case "OPTIONS" -> {
+                // Pour permettre le fonctionnement du filtre CORS
+                super.doFilter(request, response, chain);
+            }
             case "POST", "PUT" -> {
                 // Traitement des requêtes qui peuvent avoir des contenus
                 if (request.getHeader("Content-Type") == null || request.getHeader("Content-Type").isEmpty()) {
