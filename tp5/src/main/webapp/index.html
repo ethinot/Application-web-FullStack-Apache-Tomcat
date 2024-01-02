@@ -8,13 +8,6 @@
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/app.css">
     <script src=" https://cdn.jsdelivr.net/npm/mustache@4.2.0/mustache.min.js "></script>
-    <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
-    <script>
-        // compile the template
-        var template = Handlebars.compile("Handlebars <b>{{doesWhat}}</b>");
-        // execute the compiled template and print the output to the console
-        console.log(template({ doesWhat: "rocks!" }));
-    </script>
     <script type="application/javascript" src="js/api-base.js"></script>
     <script type="application/javascript" src="js/spa.js"></script>
 </head>
@@ -37,13 +30,13 @@
     });
 </script>
 
-<script id="menu-template" type="text/html">
+<script id="menu-template" type="text/template">
     <li class="nav-item"><a href='#index'>Accueil</a></li>
     <li class="nav-item"><a href='#connect'>Connexion</a></li>
     <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
     {{#loged}}
-        <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
-        <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
+    <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
+    <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
     {{/loged}}
 </script>
 
