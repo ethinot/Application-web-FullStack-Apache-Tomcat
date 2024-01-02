@@ -41,8 +41,8 @@ const user1 = {
     user1AssignedTodo
 }
 
-const isLoged = {
-    "loged": true
+let isLoged = {
+    "loged": false
 }
 
     // Todo
@@ -103,6 +103,7 @@ function displayRequestResult(text, cssClass = "alert-info") {
  * @param isConnected un Booléen qui dit si l'utilisateur est connecté ou pas
  */
 function displayConnected(isConnected) {
+    updateLogedStatus(isConnected);
     const elementsRequiringConnection = document.getElementsByClassName("requiresConnection");
     const visibilityValue = isConnected ? "visible" : "collapse";
     for(const element of elementsRequiringConnection) {
@@ -200,15 +201,9 @@ function renderTemplate(scriptId, data, targetId) {
     document.getElementById(targetId).innerHTML = Mustache.render(template, data);
 }
 
-function renderTemplateFetch(scriptId, data, targetId) {
-    fetch(scriptId)
-        .then(response => response.text())
-        .then(template => {
-            document.getElementById(targetId).innerHTML = Mustache.render(template, data);
-        })
-        .catch(error => {
-            console.error('Erreur de chargement du template', error);
-        });
+function updateLogedStatus(newStatus) {
+    isLoged.loged = newStatus;
+    renderTemplate('menu-template', isLoged, 'menu-container');
 }
 
 function deco() {
