@@ -2,13 +2,69 @@
  * Placez ici les scripts qui seront exécutés côté client pour rendre l'application côté client fonctionnelle.
  */
 
-const view = {
-    "name": {
-        "first": "Michael",
-        "last": "Jackson"
-    },
-    "age": "RIP"
+// Partie 2.2 Mock Object
+
+    // User
+
+const users = [
+    "users/toto",
+    "users/titi"
+]
+
+
+const user1Name = {
+    "name": "ALBERT"
 }
+
+const todo1 = {
+    "title": "Mon beau todo",
+    "assignee": "user1",
+    "status": "Not done"
+}
+
+const todo2 = {
+    "title": "Mon très beau todo",
+    "assignee": "user1",
+    "status": "Not done"
+}
+
+const user1AssignedTodo = {
+    "assignedTodos": [
+        todo1,
+        todo2
+    ]
+}
+
+const user1 = {
+    "login": "toto",
+    "name": "Test",
+    user1AssignedTodo
+}
+
+const isLoged = {
+    "loged": true
+}
+
+    // Todo
+
+const todos = [
+    "todos/675744564",
+    "todos/768956867"
+]
+
+
+const todo1Title = {
+    "title": "Test todo"
+}
+
+const todo1Assignee = {
+    "assignee": "users/toto"
+}
+
+const todo1Status = {
+    "status": "Done"
+}
+
 
 
 // <editor-fold desc="Gestion de l'affichage">
@@ -58,6 +114,7 @@ window.addEventListener('hashchange', () => { show(window.location.hash); });
 // </editor-fold>
 
 // <editor-fold desc="Gestion des requêtes asynchrones">
+
 /**
  * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
  */
@@ -88,10 +145,27 @@ function getNumberOfUsers() {
         });
 }
 
+function getUserName() {
+    const apiUrl = 'https://votre-api.com/users/{userID}/name';
+    // Utilisez la fonction fetch pour effectuer la requête
+    return fetch(baseUrl + "users//name")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur de l'API: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => data.name)
+        .catch(error => {
+            console.error('Erreur lors de la récupération du nom d\'utilisateur depuis l\'API', error);
+            throw error;
+        });
+}
+
 /**
  * Envoie la requête de login en fonction du contenu des champs de l'interface.
  */
-function connect() {
+async function connect() {
     displayConnected(true);
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
@@ -105,7 +179,7 @@ function connect() {
         body: JSON.stringify(body),
         mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
     };
-    fetch(baseUrl + "users/login", requestConfig)
+    await fetch(baseUrl + "users/login", requestConfig)
         .then((response) => {
             if(response.status === 204) {
                 displayRequestResult("Connexion réussie", "alert-success");
@@ -122,20 +196,20 @@ function connect() {
 }
 
 function renderTemplate(scriptId, data, targetId) {
-    var template = document.getElementById(scriptId).innerHTML;
+    let template = document.getElementById(scriptId).innerHTML;
     document.getElementById(targetId).innerHTML = Mustache.render(template, data);
 }
 
-/**
-function renderTemplate(scriptId, data, targetId) {
-    fetch('template.mustache')
-        .then((response) => response.text())
-        .then((template) => {
-            const rendered = Mustache.render(template, data);
-            document.getElementById(targetId).innerHTML = rendered;
+function renderTemplateFetch(scriptId, data, targetId) {
+    fetch(scriptId)
+        .then(response => response.text())
+        .then(template => {
+            document.getElementById(targetId).innerHTML = Mustache.render(template, data);
+        })
+        .catch(error => {
+            console.error('Erreur de chargement du template', error);
         });
 }
-*/
 
 function deco() {
 
