@@ -6,48 +6,64 @@
     <title>MIF-TODOS</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.css">
-
     <link rel="stylesheet" href="css/app.css">
     <script src=" https://cdn.jsdelivr.net/npm/mustache@4.2.0/mustache.min.js "></script>
+    <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+    <script>
+        // compile the template
+        var template = Handlebars.compile("Handlebars <b>{{doesWhat}}</b>");
+        // execute the compiled template and print the output to the console
+        console.log(template({ doesWhat: "rocks!" }));
+    </script>
     <script type="application/javascript" src="js/api-base.js"></script>
     <script type="application/javascript" src="js/spa.js"></script>
 </head>
 <body>
-<header>
+
+<script id="header-template" type="text/template">
     <h1 class="header-titre">MIF-TODOS</h1>
     <div class="wrapper">
-        <p class="header-user requiresConnection">Bonjour <strong>Toto</strong></p>
+        <p class="header-user requiresConnection">Bonjour <strong>{{ name }}</strong></p>
         <p class="header-deco requiresConnection"><a href='#deco'>Déconnexion</a></p>
     </div>
-    <!--
-        TODO faire en sorte de n'afficher la dernière div que si l'utilisateur est connecté.
-    -->
-</header>
+</script>
+
+<header id="header-container"></header>
+
+<script>
+    // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
+    document.addEventListener('DOMContentLoaded', function() {
+        renderTemplate("header-template", user1Name, "header-container");
+    });
+</script>
+
+<script id="menu-template" type="text/html">
+    <li class="nav-item"><a href='#index'>Accueil</a></li>
+    <li class="nav-item"><a href='#connect'>Connexion</a></li>
+    <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
+    {{#loged}}
+        <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
+        <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
+    {{/loged}}
+</script>
 
 <div class="wrapper">
     <aside class="menu">
         <h2>Menu</h2>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a href='#index'>Accueil</a></li>
-            <li class="nav-item"><a href='#connect'>Connexion</a></li>
-            <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
-            <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
-            <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
-        </ul>
-        <!--
-            TODO n'afficher "Mon compte" et "Todos" que si l'utilisateur est connecté.
-        -->
+        <ul class="nav flex-column" id="menu-container">...</ul>
     </aside>
-
+    <script>
+        // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTemplate("menu-template", isLoged, "menu-container");
+        });
+    </script>
     <article class="contenu">
         <div id="requestResult" class="alert"></div>
 
         <section id='index' class='active'>
             <h2>L'application des trucs à faire</h2>
             <p>Actuellement : <strong id="nbUsers">...</strong> utilisateurs inscrits.</p>
-            <!--
-                TODO A vous de modifier cette section pour qu'elle affiche les bonnes données et qu'elle se recharge toutes les 5 secondes.
-            -->
         </section>
 
         <section id='connect' class='inactive'>
@@ -57,9 +73,6 @@
                     <tr><td><label for="password_input">Mot de passe :</label></td><td><input class="form-control" type="password" id="password_input"></td></tr>
                     <tr><td><button type="button" class="btn btn-secondary" id="login_button" onclick="connect()">Connexion</button></td></tr>
                 </table>
-            <!--
-                TODO envoyer la requête puis récupérer et stocker le token.
-            -->
         </section>
 
         <section id='deco' class='inactive'>
@@ -67,20 +80,17 @@
             <p>Cliquez ici pour vous déconnecter :
                 <button type="button" class="btn btn-secondary" id="logout_button" onclick="deco()">Déconnexion</button>
             </p>
-            <!--
-                TODO envoyer la requête de logout et afficher la page d'accueil sans les éléments pour lesquels il faut être connecté.
-            -->
         </section>
 
         <section id='monCompte' class='inactive'>
             <h2>Mon compte</h2>
             <script>document.addEventListener("DOMContentLoaded", function (event) {
-                renderTemplate("firstnameTemplate", view, "login");
-                renderTemplate("lastnameTemplate", view, "nom_update_input");
+                renderTemplate("loginTemplate", user1, "login");
+                renderTemplate("usernameTemplate", user1, "nom_update_input");
             })
             </script>
-            <script id="firstnameTemplate" type="text/template">{{ name.first }}</script>
-            <script id="lastnameTemplate" type="text/template">{{ name.last }}</script>
+            <script id="loginTemplate" type="text/template">{{ login }}</script>
+            <script id="usernameTemplate" type="text/template">{{ name }}</script>
             <table id='compteList'>
                 <tr><td>Login : </td><td><span id="login"></span></td></tr>
                 <tr>
@@ -94,11 +104,17 @@
                     <td><button type="button" class="btn btn-secondary" id="password_update_button">Modifier</button></td>
                 </tr>
             </table>
+            <script id="assigned_todo_template" type="text/template">
+                {{#assignedTodos}}
+                    <li><a href="#todoList/{{title}}">{{title}}</a></li>
+                {{/assignedTodos}}
+            </script>
+            <script>document.addEventListener("DOMContentLoaded", function (event) {
+                renderTemplate("assigned_todo_template", user1, "assigned_todo_list");
+            })
+            </script>
             <div>Assigné à :
-                <ul>
-                    <li><a href="#todoList/idTodo1">Titre du premier todo</a></li>
-                    <li><a href="#todoList/idTodo3">Titre du troisième todo</a></li>
-                </ul>
+                <ul id="assigned_todo_list"></ul>
             </div>
             <!--
                 TODO afficher les informations dans les champs, récupérer les informations sur les todos et générer les éléments et leurs IDs.
