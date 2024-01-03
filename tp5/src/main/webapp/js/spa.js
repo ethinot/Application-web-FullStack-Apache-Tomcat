@@ -18,14 +18,29 @@ const user1Name = {
 
 const todo1 = {
     "title": "Mon beau todo",
+    "hash":1276876523,
     "assignee": "user1",
-    "status": "Not done"
+    "completed":true,
+    "checkBox":"&#x2611;",
+    "isMe": false
 }
 
 const todo2 = {
     "title": "Mon très beau todo",
+    "hash":1276876524,
     "assignee": "user1",
-    "status": "Not done"
+    "completed":false,
+    "checkBox":"&#x2610;",
+    "isMe": false
+}
+
+const todo3 = {
+    "title": "Faire faire",
+    "hash":1276876525,
+    "assignee": "user2",
+    "completed":false,
+    "checkBox":"&#x2610;",
+    "isMe": true
 }
 
 const user1AssignedTodo = {
@@ -47,10 +62,8 @@ let isLoged = {
 
     // Todo
 
-const todos = [
-    "todos/675744564",
-    "todos/768956867"
-]
+const todos = [todo1, todo2, todo3];
+
 
 
 const todo1Title = {
@@ -311,4 +324,4 @@ function getConnectedUser () {
 }
 
 setInterval(getNumberOfUsers, 5000);
-setInterval(getNumberOfTodos, 10000);
+//setInterval(getNumberOfTodos, 10000);
