@@ -247,6 +247,28 @@ function renderTemplate(scriptId, data, targetId) {
     document.getElementById(targetId).innerHTML = Mustache.render(template, data);
 }
 
+async function precompileTemplate(scriptId) {
+    return new Promise((resolve, reject) => {
+        const scriptElement = document.getElementById(scriptId);
+
+        if (!scriptElement) {
+            reject(new Error(`Script element with ID '${scriptId}' not found.`));
+            return;
+        }
+
+        const templateSource = scriptElement.innerHTML;
+        const templateSpec = Handlebars.precompile(templateSource);
+        const compiledTemplate = Handlebars.template(eval(`(${templateSpec})`));
+
+        resolve(compiledTemplate);
+    });
+}
+
+function insertCompiledTemplate(compiledTemplate,data, targetId) {
+    document.getElementById(targetId).innerHTML = compiledTemplate(data);
+}
+
+
 function updateLogedStatus(newStatus) {
     isLoged.loged = newStatus;
     renderTemplate('menu-template', isLoged, 'menu-container');
