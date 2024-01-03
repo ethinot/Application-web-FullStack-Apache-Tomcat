@@ -144,6 +144,36 @@ function getNumberOfUsers() {
         });
 }
 
+/**
+ * Met à jour le nombre de todos créer sur la vue "todoList".
+ */
+function getNumberOfTodos() {
+    const headers = new Headers();
+    headers.append("Accept", "application/json");
+    const requestConfig = {
+        method: "GET",
+        headers: headers,
+        mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
+    };
+
+    fetch(baseUrl + "todos", requestConfig)
+        .then((response) => {
+            if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
+                return response.json();
+            } else {
+                throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+            }
+        }).then((json) => {
+        if(Array.isArray(json)) {
+            document.getElementById("nbTodos").innerText = json.length;
+        } else {
+            throw new Error(json + " is not an array.");
+        }
+    }).catch((err) => {
+        console.error("In getNumberOfUsers: " + err);
+    });
+}
+
 function getUserName() {
     const apiUrl = 'https://votre-api.com/users/{userID}/name';
     // Utilisez la fonction fetch pour effectuer la requête
@@ -281,5 +311,4 @@ function getConnectedUser () {
 }
 
 setInterval(getNumberOfUsers, 5000);
-
-// </editor-fold>
+setInterval(getNumberOfTodos, 10000);
