@@ -121,48 +121,55 @@
             </script>
         </section>
 
+        <!--
+
+
+        -->
+
+        <script id="todos-template" type="text/template">
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Titre</th>
+                        <th>Assigné à</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#todos}}
+                        {{#isMe}}
+                            <tr class="special">
+                                <td>{{{checkBox}}}</td>
+                                <td>{{title}}</td>
+                                <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
+                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>Me retirer ce todo</button></td>
+                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+                            </tr>
+                        {{/isMe}}
+                            <tr>
+                                <td>{{{checkBox}}}</td>
+                                <td>{{title}}</td>
+                                <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
+                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
+                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+                            </tr>
+                    {{/todos}}
+                </tbody>
+            </table>
+        </script>
+
         <section id='todoList' class='inactive'>
             <h2><strong>Liste des todos</strong></h2>
             <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
-            <div class="list">
-            <table>
-                <tr>
-                    <th></th>
-                    <th>Titre</th>
-                    <th>Assigné à</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-                <tr class="special">
-                    <td>&#x2611;</td>
-                    <td>Titre du premier todo</td>
-                    <td><a href="#user/toto">Toto</a></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo1_removeUser_button">Me retirer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo1_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-                <tr>
-                    <td>&#x2610;</td>
-                    <td>Titre du deuxième todo</td>
-                    <td><a href="#user/titi">Titi</a></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo2_assignUser_button">M'attribuer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo2_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-                <tr class="special">
-                    <td>&#x2610;</td>
-                    <td>Titre du troisième todo</td>
-                    <td><a href="#user/toto">Toto</a></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo3_removeUser_button">Me retirer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo3_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-                <tr>
-                    <td>&#x2610;</td>
-                    <td>Titre du quatrième todo</td>
-                    <td></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodoN_assignUser_button">M'attribuer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodoN_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-            </table>
-            </div>
+            <div class="list" id="todos-container">...</div>
+            <script>
+                // TODO : Remplacer le mock objets par le user connecté
+                document.addEventListener("DOMContentLoaded", function (event) {
+                    renderTemplate("todos-template", { todos }, "todos-container");
+                });
+            </script>
             <!--
                 TODO mettre en place une boucle sur les todos et afficher les données.
                 TODO recharger les informations toutes les 5 secondes.
