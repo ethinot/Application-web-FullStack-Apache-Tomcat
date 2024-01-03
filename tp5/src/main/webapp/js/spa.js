@@ -65,8 +65,6 @@ const todo1Status = {
     "status": "Done"
 }
 
-
-
 // <editor-fold desc="Gestion de l'affichage">
 /**
  * Fait basculer la visibilité des éléments affichés quand le hash change.<br>
@@ -184,14 +182,19 @@ async function connect() {
         .then((response) => {
             if(response.status === 204) {
                 displayRequestResult("Connexion réussie", "alert-success");
-                console.log("In login: Authorization = " + response.headers.get("Authorization"));
+                const authorizationHeader = response.headers.get('Authorization');
+                if (authorizationHeader) {
+                    localStorage.setItem('jwt', authorizationHeader);
+                    console.log("In login: Authorization = " + authorizationHeader);
+                } else {
+                    console.error('Le header "Authorization" est manquant dans la réponse.');
+                }
                 location.hash = "#index";
             } else {
                 displayRequestResult("Connexion refusée ou impossible", "alert-danger");
                 throw new Error("Bad response code (" + response.status + ").");
             }
-        })
-        .catch((err) => {
+        }).catch((err) => {
             console.error("In login: " + err);
         })
 }
@@ -207,7 +210,6 @@ function updateLogedStatus(newStatus) {
 }
 
 function deco() {
-
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const requestConfig = {
