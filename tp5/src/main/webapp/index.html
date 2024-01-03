@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,6 +15,7 @@
 
 <script id="header-template" type="text/template">
     <h1 class="header-titre">MIF-TODOS</h1>
+    <!-- TODO : Ajouter une condition de connection pour la div qui suit -->
     <div class="wrapper">
         <p class="header-user requiresConnection">Bonjour <strong>{{ name }}</strong></p>
         <p class="header-deco requiresConnection"><a href='#deco'>Déconnexion</a></p>
@@ -59,6 +60,7 @@
             <p>Actuellement : <strong id="nbUsers">...</strong> utilisateurs inscrits.</p>
         </section>
 
+
         <section id='connect' class='inactive'>
             <h2>Connectez-vous pour accéder aux todos</h2>
                 <table>
@@ -66,7 +68,11 @@
                     <tr><td><label for="password_input">Mot de passe :</label></td><td><input class="form-control" type="password" id="password_input"></td></tr>
                     <tr><td><button type="button" class="btn btn-secondary" id="login_button" onclick="connect()">Connexion</button></td></tr>
                 </table>
+            <!--
+                TODO envoyer la requête puis récupérer et stocker le token (localstorage).
+            -->
         </section>
+
 
         <section id='deco' class='inactive'>
             <h2>Déconnexion</h2>
@@ -77,10 +83,11 @@
 
         <section id='monCompte' class='inactive'>
             <h2>Mon compte</h2>
-            <script>document.addEventListener("DOMContentLoaded", function (event) {
-                renderTemplate("loginTemplate", user1, "login");
-                renderTemplate("usernameTemplate", user1, "nom_update_input");
-            })
+            <script>
+                document.addEventListener("DOMContentLoaded", function (event) {
+                    renderTemplate("loginTemplate", user1, "login");
+                    renderTemplate("usernameTemplate", user1, "nom_update_input");
+                });
             </script>
             <script id="loginTemplate" type="text/template">{{ login }}</script>
             <script id="usernameTemplate" type="text/template">{{ name }}</script>
@@ -97,18 +104,25 @@
                     <td><button type="button" class="btn btn-secondary" id="password_update_button">Modifier</button></td>
                 </tr>
             </table>
-            <script id="assigned_todo_template" type="text/template">
+
+            <!-- todo-partial -->
+            <script id="todo-partial" type="text/template">
+                <li><a href="#todoList/{{title}}">{{title}}</a> {{assignee}} {{status}}</li>
+            </script>
+
+            <script id="assigned-todos-template" type="text/template">
                 {{#assignedTodos}}
-                    <li><a href="#todoList/{{title}}">{{title}}</a></li>
+                    <li><a href="#todoList/{{title}}">{{title}}</a> {{assignee}} {{status}}</li>
                 {{/assignedTodos}}
             </script>
-            <script>document.addEventListener("DOMContentLoaded", function (event) {
-                renderTemplate("assigned_todo_template", user1, "assigned_todo_list");
-            })
-            </script>
             <div>Assigné à :
-                <ul id="assigned_todo_list"></ul>
+                <ul id="assigned-todo-container">...</ul>
             </div>
+            <script>
+                document.addEventListener("DOMContentLoaded", function (event) {
+                    renderTemplate("assigned-todos-template", user1AssignedTodo, "assigned-todo-container");
+                });
+            </script>
             <!--
                 TODO afficher les informations dans les champs, récupérer les informations sur les todos et générer les éléments et leurs IDs.
             -->
