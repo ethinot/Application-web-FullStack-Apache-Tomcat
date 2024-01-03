@@ -105,11 +105,6 @@
                 </tr>
             </table>
 
-            <!-- todo-partial -->
-            <script id="todo-partial" type="text/template">
-                <li><a href="#todoList/{{title}}">{{title}}</a> {{assignee}} {{status}}</li>
-            </script>
-
             <script id="assigned-todos-template" type="text/template">
                 {{#assignedTodos}}
                     <li><a href="#todoList/{{title}}">{{title}}</a> {{assignee}} {{status}}</li>
@@ -119,21 +114,16 @@
                 <ul id="assigned-todo-container">...</ul>
             </div>
             <script>
+                // TODO : Remplacer le mock objets par le user connecté
                 document.addEventListener("DOMContentLoaded", function (event) {
                     renderTemplate("assigned-todos-template", user1AssignedTodo, "assigned-todo-container");
                 });
             </script>
-            <!--
-                TODO afficher les informations dans les champs, récupérer les informations sur les todos et générer les éléments et leurs IDs.
-            -->
         </section>
 
         <section id='todoList' class='inactive'>
             <h2><strong>Liste des todos</strong></h2>
-            <p>Il y a actuellement <strong>...</strong> todo(s).</p>
-            <!--
-                TODO afficher le nombre de todos
-            -->
+            <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
             <div class="list">
             <table>
                 <tr>
