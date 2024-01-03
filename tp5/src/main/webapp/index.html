@@ -8,11 +8,13 @@
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/app.css">
     <script src=" https://cdn.jsdelivr.net/npm/mustache@4.2.0/mustache.min.js "></script>
+    <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     <script type="application/javascript" src="js/api-base.js"></script>
     <script type="application/javascript" src="js/spa.js"></script>
 </head>
 <body>
 
+<!-- Templates -->
 <script id="header-template" type="text/template">
     <h1 class="header-titre">MIF-TODOS</h1>
     <!-- TODO : Ajouter une condition de connection pour la div qui suit -->
@@ -22,12 +24,25 @@
     </div>
 </script>
 
+<!-- Pré-compilation des template-->
+<script>
+    // Header
+    let compiledHeaderTemplate;
+    precompileTemplate("header-template")
+        .then((compiledHeaderPromise) => {
+            compiledHeaderTemplate = compiledHeaderPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+</script>
+
 <header id="header-container"></header>
 
 <script>
     // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
     document.addEventListener('DOMContentLoaded', function() {
-        renderTemplate("header-template", user1Name, "header-container");
+        insertCompiledTemplate(compiledHeaderTemplate, user1Name, "header-container");
     });
 </script>
 
