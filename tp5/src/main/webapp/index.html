@@ -24,6 +24,60 @@
     </div>
 </script>
 
+<script id="menu-template" type="text/template">
+    <li class="nav-item"><a href='#index'>Accueil</a></li>
+    <li class="nav-item"><a href='#connect'>Connexion</a></li>
+    <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
+    {{#loged}}
+    <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
+    <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
+    {{/loged}}
+</script>
+
+<script id="login-template" type="text/template">{{ login }}</script>
+
+<script id="username-template" type="text/template">{{ name }}</script>
+
+<script id="assigned-todos-template" type="text/template">
+    {{#assignedTodos}}
+    <li><a href="#todoList/{{title}}">{{title}}</a> {{assignee}} {{status}}</li>
+    {{/assignedTodos}}
+</script>
+
+<script id="todos-template" type="text/template">
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th>Titre</th>
+            <th>Assigné à</th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#todos}}
+        {{#isMe}}
+        <tr class="special">
+            <td>{{{checkBox}}}</td>
+            <td>{{title}}</td>
+            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>Me retirer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+        </tr>
+        {{/isMe}}
+        <tr>
+            <td>{{{checkBox}}}</td>
+            <td>{{title}}</td>
+            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+        </tr>
+        {{/todos}}
+        </tbody>
+    </table>
+</script>
+
 <!-- Pré-compilation des template-->
 <script>
     // Header
@@ -31,6 +85,51 @@
     precompileTemplate("header-template")
         .then((compiledHeaderPromise) => {
             compiledHeaderTemplate = compiledHeaderPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Menu
+    let compiledMenuTemplate;
+    precompileTemplate("menu-template")
+        .then((compiledMenuPromise) => {
+            compiledMenuTemplate = compiledMenuPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Login
+    let compiledLoginTemplate;
+    precompileTemplate("login-template")
+        .then((compiledLoginPromise) => {
+            compiledLoginTemplate = compiledLoginPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Username
+    let compiledUsernameTemplate;
+    precompileTemplate("menu-template")
+        .then((compiledUsernamePromise) => {
+            compiledUsernameTemplate = compiledUsernamePromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Assigned-todos
+    let compiledAssignedTodosTemplate;
+    precompileTemplate("menu-template")
+        .then((compiledAssignedTodosPromise) => {
+            compiledAssignedTodosTemplate = compiledAssignedTodosPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Todos
+    let compiledTodosTemplate;
+    precompileTemplate("menu-template")
+        .then((compiledTodosPromise) => {
+            compiledTodosTemplate = compiledTodosPromise;
         })
         .catch((error) => {
             console.error(error.message);
@@ -46,15 +145,6 @@
     });
 </script>
 
-<script id="menu-template" type="text/template">
-    <li class="nav-item"><a href='#index'>Accueil</a></li>
-    <li class="nav-item"><a href='#connect'>Connexion</a></li>
-    <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
-    {{#loged}}
-    <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
-    <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
-    {{/loged}}
-</script>
 
 <div class="wrapper">
     <aside class="menu">
@@ -64,7 +154,7 @@
     <script>
         // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
         document.addEventListener('DOMContentLoaded', function() {
-            renderTemplate("menu-template", isLoged, "menu-container");
+            insertCompiledTemplate(compiledMenuTemplate, isLoged, "menu-container");
         });
     </script>
     <article class="contenu">
@@ -83,9 +173,6 @@
                     <tr><td><label for="password_input">Mot de passe :</label></td><td><input class="form-control" type="password" id="password_input"></td></tr>
                     <tr><td><button type="button" class="btn btn-secondary" id="login_button" onclick="connect()">Connexion</button></td></tr>
                 </table>
-            <!--
-                TODO envoyer la requête puis récupérer et stocker le token (localstorage).
-            -->
         </section>
 
 
@@ -100,12 +187,11 @@
             <h2>Mon compte</h2>
             <script>
                 document.addEventListener("DOMContentLoaded", function (event) {
-                    renderTemplate("loginTemplate", user1, "login");
-                    renderTemplate("usernameTemplate", user1, "nom_update_input");
+                    insertCompiledTemplate(compiledLoginTemplate, user1, "login");
+                    insertCompiledTemplate(compiledUsernameTemplate, user1, "nom_update_input");
                 });
             </script>
-            <script id="loginTemplate" type="text/template">{{ login }}</script>
-            <script id="usernameTemplate" type="text/template">{{ name }}</script>
+
             <table id='compteList'>
                 <tr><td>Login : </td><td><span id="login"></span></td></tr>
                 <tr>
@@ -120,60 +206,16 @@
                 </tr>
             </table>
 
-            <script id="assigned-todos-template" type="text/template">
-                {{#assignedTodos}}
-                    <li><a href="#todoList/{{title}}">{{title}}</a> {{assignee}} {{status}}</li>
-                {{/assignedTodos}}
-            </script>
             <div>Assigné à :
                 <ul id="assigned-todo-container">...</ul>
             </div>
             <script>
                 // TODO : Remplacer le mock objets par le user connecté
                 document.addEventListener("DOMContentLoaded", function (event) {
-                    renderTemplate("assigned-todos-template", user1AssignedTodo, "assigned-todo-container");
+                    insertCompiledTemplate(compiledAssignedTodosTemplate, user1AssignedTodo, "assigned-todo-container");
                 });
             </script>
         </section>
-
-        <!--
-
-
-        -->
-
-        <script id="todos-template" type="text/template">
-            <table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Titre</th>
-                        <th>Assigné à</th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#todos}}
-                        {{#isMe}}
-                            <tr class="special">
-                                <td>{{{checkBox}}}</td>
-                                <td>{{title}}</td>
-                                <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
-                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>Me retirer ce todo</button></td>
-                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
-                            </tr>
-                        {{/isMe}}
-                            <tr>
-                                <td>{{{checkBox}}}</td>
-                                <td>{{title}}</td>
-                                <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
-                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
-                                <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
-                            </tr>
-                    {{/todos}}
-                </tbody>
-            </table>
-        </script>
 
         <section id='todoList' class='inactive'>
             <h2><strong>Liste des todos</strong></h2>
@@ -182,7 +224,7 @@
             <script>
                 // TODO : Remplacer le mock objets par le user connecté
                 document.addEventListener("DOMContentLoaded", function (event) {
-                    renderTemplate("todos-template", { todos }, "todos-container");
+                    insertCompiledTemplate(compiledTodosTemplate, { todos }, "todos-container");
                 });
             </script>
             <!--
