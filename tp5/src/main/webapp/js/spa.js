@@ -127,6 +127,16 @@ window.addEventListener('hashchange', () => { show(window.location.hash); });
 
 // <editor-fold desc="Gestion des requêtes asynchrones">
 
+
+/** Fonction pour vérifier si l'utilisateur est connecté
+ *
+ * @returns {boolean}
+ */
+function isConnected() {
+    const jwtToken = localStorage.getItem('jwt');
+    return !!jwtToken;
+}
+
 /**
  * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
  */
@@ -161,8 +171,15 @@ function getNumberOfUsers() {
  * Met à jour le nombre de todos créer sur la vue "todoList".
  */
 function getNumberOfTodos() {
+    if (!isConnected()) {
+        console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+        return;
+    }
+
     const headers = new Headers();
     headers.append("Accept", "application/json");
+    headers.append("Authorization", localStorage.getItem('jwt'));
+
     const requestConfig = {
         method: "GET",
         headers: headers,
@@ -207,7 +224,7 @@ function getUserName() {
 /**
  * Envoie la requête de login en fonction du contenu des champs de l'interface.
  */
-async function connect() {
+function connect() {
     displayConnected(true);
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
@@ -221,7 +238,7 @@ async function connect() {
         body: JSON.stringify(body),
         mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
     };
-    await fetch(baseUrl + "users/login", requestConfig)
+    fetch(baseUrl + "users/login", requestConfig)
         .then((response) => {
             if(response.status === 204) {
                 displayRequestResult("Connexion réussie", "alert-success");
@@ -237,7 +254,8 @@ async function connect() {
                 displayRequestResult("Connexion refusée ou impossible", "alert-danger");
                 throw new Error("Bad response code (" + response.status + ").");
             }
-        }).catch((err) => {
+        })
+        .catch((err) => {
             console.error("In login: " + err);
         })
 }
@@ -346,4 +364,4 @@ function getConnectedUser () {
 }
 
 setInterval(getNumberOfUsers, 5000);
-//setInterval(getNumberOfTodos, 10000);
+setInterval(getNumberOfTodos, 10000);
