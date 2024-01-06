@@ -28,7 +28,9 @@
     <li class="nav-item"><a href='#index'>Accueil</a></li>
     <li class="nav-item"><a href='#connect'>Connexion</a></li>
     <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
+
     {{#loged}}
+    <li class="nav-item"><button type="button" onclick="getUserName()">Récupérer nom utilisateur</button></li>
     <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
     <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
     {{/loged}}
@@ -140,10 +142,19 @@
 
 <script>
     // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
-    document.addEventListener('DOMContentLoaded', function() {
-        insertCompiledTemplate(compiledHeaderTemplate, user1Name, "header-container");
+    window.addEventListener("hashchange", async function() {
+        try {
+            if(window.location.hash === "#connect") {
+                await getUserName();
+                insertCompiledTemplate(compiledHeaderTemplate, userConnected, "header-container");
+            }
+        } catch (e) {
+            console.error("Error in hashchange event : " , e);
+        }
     });
 </script>
+
+
 
 
 <div class="wrapper">
@@ -188,7 +199,7 @@
             <script>
                 document.addEventListener("DOMContentLoaded", function (event) {
                     insertCompiledTemplate(compiledLoginTemplate, user1, "login");
-                    insertCompiledTemplate(compiledUsernameTemplate, user1, "nom_update_input");
+                    insertCompiledTemplate(compiledUsernameTemplate, userConnected, "nom_update_input");
                 });
             </script>
 

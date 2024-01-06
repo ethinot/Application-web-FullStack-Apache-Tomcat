@@ -56,9 +56,14 @@ const user1 = {
     user1AssignedTodo
 }
 
+let userConnected;
+
 let isLoged = {
     "loged": false
 }
+
+
+
 
     // Todo
 
@@ -204,23 +209,6 @@ function getNumberOfTodos() {
     });
 }
 
-function getUserName() {
-    const apiUrl = 'https://votre-api.com/users/{userID}/name';
-    // Utilisez la fonction fetch pour effectuer la requête
-    return fetch(baseUrl + "users//name")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Erreur de l'API: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => data.name)
-        .catch(error => {
-            console.error('Erreur lors de la récupération du nom d\'utilisateur depuis l\'API', error);
-            throw error;
-        });
-}
-
 /**
  * Envoie la requête de login en fonction du contenu des champs de l'interface.
  */
@@ -239,8 +227,8 @@ function connect() {
         mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
     };
     fetch(baseUrl + "users/login", requestConfig)
-        .then((response) => {
-            if(response.status === 204) {
+        .then(async (response) => {
+            if (response.status === 204) {
                 displayRequestResult("Connexion réussie", "alert-success");
                 const authorizationHeader = response.headers.get('Authorization');
                 if (authorizationHeader) {
@@ -295,14 +283,14 @@ function updateLogedStatus(newStatus) {
 function deco() {
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
+    headers.append("Authorization", localStorage.getItem('jwt'));
     const requestConfig = {
         method : "POST",
-        header : headers,
-        mode : "cors"
+        headers : headers
     };
     fetch(baseUrl + "users/logout", requestConfig)
         .then((response) => {
-            if (response.status === 204) {
+            if (response.status === 204){
                 displayRequestResult("Déconnexion réussie", "alert-success");
                 location.hash = "#index";
             } else {
@@ -366,6 +354,33 @@ async function getConnectedUser () {
         console.log("In getConnectedUser", err);
     }
 }
+
+async function getUserName() {
+    try {
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "text/html");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method : "GET",
+            headers : headers
+        }
+
+        await fetch(baseUrl + users[0] + "/name", requestConfig)
+            .then((response) => {
+                if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
+                    return response.json();
+                }
+            }).then((data) => {
+                userConnected = data;
+                return data;
+            })
+    } catch (e) {
+        console.log("In getUserName", e);
+    }
+}
+
 
 setInterval(getNumberOfUsers, 5000);
 setInterval(getNumberOfTodos, 10000);
