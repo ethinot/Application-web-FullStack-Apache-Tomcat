@@ -2,21 +2,82 @@
  * Placez ici les scripts qui seront exécutés côté client pour rendre l'application côté client fonctionnelle.
  */
 
-const view = {
-    "name": {
-        "first": "Michael",
-        "last": "Jackson"
-    },
-    "age": "RIP"
+// Partie 2.2 Mock Object
+
+    // User
+
+const users = [
+    "users/toto",
+    "users/titi"
+]
+
+
+const user1Name = {
+    "name": "ALBERT"
 }
 
-let userLogin;
-let userName;
-let tokenJWT;
+const todo1 = {
+    "title": "Mon beau todo",
+    "hash":1276876523,
+    "assignee": "user1",
+    "completed":true,
+    "checkBox":"&#x2611;",
+    "isMe": false
+}
 
-let isConnected = false;
+const todo2 = {
+    "title": "Mon très beau todo",
+    "hash":1276876524,
+    "assignee": "user1",
+    "completed":false,
+    "checkBox":"&#x2610;",
+    "isMe": false
+}
 
-let connectedUser = {};
+const todo3 = {
+    "title": "Faire faire",
+    "hash":1276876525,
+    "assignee": "user2",
+    "completed":false,
+    "checkBox":"&#x2610;",
+    "isMe": true
+}
+
+const user1AssignedTodo = {
+    "assignedTodos": [
+        todo1,
+        todo2
+    ]
+}
+
+const user1 = {
+    "login": "toto",
+    "name": "Test",
+    user1AssignedTodo
+}
+
+let isLoged = {
+    "loged": false
+}
+
+    // Todo
+
+const todos = [todo1, todo2, todo3];
+
+
+
+const todo1Title = {
+    "title": "Test todo"
+}
+
+const todo1Assignee = {
+    "assignee": "users/toto"
+}
+
+const todo1Status = {
+    "status": "Done"
+}
+
 // <editor-fold desc="Gestion de l'affichage">
 /**
  * Fait basculer la visibilité des éléments affichés quand le hash change.<br>
@@ -53,6 +114,7 @@ function displayRequestResult(text, cssClass = "alert-info") {
  * @param isConnected un Booléen qui dit si l'utilisateur est connecté ou pas
  */
 function displayConnected(isConnected) {
+    updateLogedStatus(isConnected);
     const elementsRequiringConnection = document.getElementsByClassName("requiresConnection");
     const visibilityValue = isConnected ? "visible" : "collapse";
     for(const element of elementsRequiringConnection) {
@@ -64,6 +126,17 @@ window.addEventListener('hashchange', () => { show(window.location.hash); });
 // </editor-fold>
 
 // <editor-fold desc="Gestion des requêtes asynchrones">
+
+
+/** Fonction pour vérifier si l'utilisateur est connecté
+ *
+ * @returns {boolean}
+ */
+function isConnected() {
+    const jwtToken = localStorage.getItem('jwt');
+    return !!jwtToken;
+}
+
 /**
  * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
  */
@@ -95,6 +168,60 @@ function getNumberOfUsers() {
 }
 
 /**
+ * Met à jour le nombre de todos créer sur la vue "todoList".
+ */
+function getNumberOfTodos() {
+    if (!isConnected()) {
+        console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+        return;
+    }
+
+    const headers = new Headers();
+    headers.append("Accept", "application/json");
+    headers.append("Authorization", localStorage.getItem('jwt'));
+
+    const requestConfig = {
+        method: "GET",
+        headers: headers,
+        mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
+    };
+
+    fetch(baseUrl + "todos", requestConfig)
+        .then((response) => {
+            if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
+                return response.json();
+            } else {
+                throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+            }
+        }).then((json) => {
+        if(Array.isArray(json)) {
+            document.getElementById("nbTodos").innerText = json.length;
+        } else {
+            throw new Error(json + " is not an array.");
+        }
+    }).catch((err) => {
+        console.error("In getNumberOfUsers: " + err);
+    });
+}
+
+function getUserName() {
+    const apiUrl = 'https://votre-api.com/users/{userID}/name';
+    // Utilisez la fonction fetch pour effectuer la requête
+    return fetch(baseUrl + "users//name")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur de l'API: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => data.name)
+        .catch(error => {
+            console.error('Erreur lors de la récupération du nom d\'utilisateur depuis l\'API', error);
+            throw error;
+        });
+}
+
+/**
  * Envoie la requête de login en fonction du contenu des champs de l'interface.
  */
 function connect() {
@@ -115,13 +242,15 @@ function connect() {
         .then((response) => {
             if(response.status === 204) {
                 displayRequestResult("Connexion réussie", "alert-success");
-                isConnected = true;
-                userLogin = body.login;
-                tokenJWT = response.headers.get("Authorization");
-                console.log("In login: Authorization = " + response.headers.get("Authorization"));
+                const authorizationHeader = response.headers.get('Authorization');
+                if (authorizationHeader) {
+                    localStorage.setItem('jwt', authorizationHeader);
+                    console.log("In login: Authorization = " + authorizationHeader);
+                } else {
+                    console.error('Le header "Authorization" est manquant dans la réponse.');
+                }
                 location.hash = "#index";
             } else {
-                isConnected = false;
                 displayRequestResult("Connexion refusée ou impossible", "alert-danger");
                 throw new Error("Bad response code (" + response.status + ").");
             }
@@ -132,23 +261,38 @@ function connect() {
 }
 
 function renderTemplate(scriptId, data, targetId) {
-    var template = document.getElementById(scriptId).innerHTML;
+    let template = document.getElementById(scriptId).innerHTML;
     document.getElementById(targetId).innerHTML = Mustache.render(template, data);
 }
 
-/**
-function renderTemplate(scriptId, data, targetId) {
-    fetch('template.mustache')
-        .then((response) => response.text())
-        .then((template) => {
-            const rendered = Mustache.render(template, data);
-            document.getElementById(targetId).innerHTML = rendered;
-        });
+async function precompileTemplate(scriptId) {
+    return new Promise((resolve, reject) => {
+        const scriptElement = document.getElementById(scriptId);
+
+        if (!scriptElement) {
+            reject(new Error(`Script element with ID '${scriptId}' not found.`));
+            return;
+        }
+
+        const templateSource = scriptElement.innerHTML;
+        const templateSpec = Handlebars.precompile(templateSource);
+        const compiledTemplate = Handlebars.template(eval(`(${templateSpec})`));
+
+        resolve(compiledTemplate);
+    });
 }
-*/
+
+function insertCompiledTemplate(compiledTemplate,data, targetId) {
+    document.getElementById(targetId).innerHTML = compiledTemplate(data);
+}
+
+
+function updateLogedStatus(newStatus) {
+    isLoged.loged = newStatus;
+    renderTemplate('menu-template', isLoged, 'menu-container');
+}
 
 function deco() {
-
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const requestConfig = {
@@ -224,5 +368,4 @@ async function getConnectedUser () {
 }
 
 setInterval(getNumberOfUsers, 5000);
-
-// </editor-fold>
+setInterval(getNumberOfTodos, 10000);
