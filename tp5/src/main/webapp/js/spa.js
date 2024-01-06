@@ -10,7 +10,13 @@ const view = {
     "age": "RIP"
 }
 
+let userLogin;
+let userName;
+let tokenJWT;
 
+let isConnected = false;
+
+let connectedUser = {};
 // <editor-fold desc="Gestion de l'affichage">
 /**
  * Fait basculer la visibilité des éléments affichés quand le hash change.<br>
@@ -109,9 +115,13 @@ function connect() {
         .then((response) => {
             if(response.status === 204) {
                 displayRequestResult("Connexion réussie", "alert-success");
+                isConnected = true;
+                userLogin = body.login;
+                tokenJWT = response.headers.get("Authorization");
                 console.log("In login: Authorization = " + response.headers.get("Authorization"));
                 location.hash = "#index";
             } else {
+                isConnected = false;
                 displayRequestResult("Connexion refusée ou impossible", "alert-danger");
                 throw new Error("Bad response code (" + response.status + ").");
             }
@@ -162,51 +172,55 @@ function deco() {
     displayConnected(false);
 }
 
-function getAllUsers () {
-    const headers = new Headers();
-    const requestConfig = {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        mode : "cors",
-        accept: "application/json"
-    };
-    fetch(baseUrl + "users", requestConfig)
-        .then((response) => {
-                return response.json()
-            }
-            ).then(res => {
-                console.log(res);
+async function getAllUsers () {
+    try {
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        const reqConfig = {
+            method: "GET",
+            headers: headers
+        };
+        await fetch(baseUrl + "users", reqConfig)
+            .then((response) => {
+                if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+                    return response.json();
+                }
+            })
+            .then((data) => {
+                if (Array.isArray(data)) {
+                    console.log(data);
+                }
             });
-    /*const requestConfig = {
-        credential: "include",
-        accept : "application/json"
-
+    } catch (err) {
+        console.error("In getAllUsers", err);
     }
-    const response = fetch(baseUrl + "user", requestConfig);
-    const users = response.json();
-    console.log(users);*/
 }
 
-function getConnectedUser () {
-
-    const headers = new Headers();
-    headers.append("Content-Type", "text/html");
-    const requestConfig = {
-        method: "GET",
-        header: headers,
-        mode: "cors"
+async function getConnectedUser () {
+    try {
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "text/html");
+        headers.append("Authorization", `${tokenJWT}`);
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        }
+        await fetch(baseUrl + "users/" + userLogin, requestConfig)
+            .then((response) => {
+                if (response.ok && response.status === 200 && response.headers.get("Content-Type").includes("application/json")) {
+                    return response.json();
+                }
+            }).then((data) => {
+                if (Array.isArray(data)) {
+                    console.log(data);
+                }
+            });
     }
-    fetch(baseUrl + "users/" , requestConfig)
-        .then((response) => {
-            if(response.status === 204) {
-
-            }
-        })
-
-
+    catch (err) {
+        console.log("In getConnectedUser", err);
+    }
 }
 
 setInterval(getNumberOfUsers, 5000);
