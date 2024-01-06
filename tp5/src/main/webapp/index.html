@@ -109,7 +109,7 @@
         });
     // Username
     let compiledUsernameTemplate;
-    precompileTemplate("menu-template")
+    precompileTemplate("username-template")
         .then((compiledUsernamePromise) => {
             compiledUsernameTemplate = compiledUsernamePromise;
         })
@@ -118,7 +118,7 @@
         });
     // Assigned-todos
     let compiledAssignedTodosTemplate;
-    precompileTemplate("menu-template")
+    precompileTemplate("assigned-todos-template")
         .then((compiledAssignedTodosPromise) => {
             compiledAssignedTodosTemplate = compiledAssignedTodosPromise;
         })
@@ -127,7 +127,7 @@
         });
     // Todos
     let compiledTodosTemplate;
-    precompileTemplate("menu-template")
+    precompileTemplate("todos-template")
         .then((compiledTodosPromise) => {
             compiledTodosTemplate = compiledTodosPromise;
         })
@@ -141,7 +141,7 @@
 <script>
     // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
     document.addEventListener('DOMContentLoaded', function() {
-        insertCompiledTemplate(compiledHeaderTemplate, user1Name, "header-container");
+        insertCompiledTemplate(compiledHeaderTemplate, user2, "header-container");
     });
 </script>
 
@@ -222,15 +222,17 @@
             <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
             <div class="list" id="todos-container">...</div>
             <script>
-                // TODO : Remplacer le mock objets par le user connecté
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    insertCompiledTemplate(compiledTodosTemplate, { todos }, "todos-container");
+                window.addEventListener("hashchange", async function (event) {
+                    try {
+                        if (window.location.hash === "#todoList") {
+                            await addTodos(todosIds);
+                            insertCompiledTemplate(compiledTodosTemplate, { todos }, "todos-container");
+                        }
+                    } catch (err) {
+                        console.error("Error in hashchange event:", err);
+                    }
                 });
             </script>
-            <!--
-                TODO mettre en place une boucle sur les todos et afficher les données.
-                TODO recharger les informations toutes les 5 secondes.
-            -->
 
             <div class="container d-flex">
                 <div class ="row ">
