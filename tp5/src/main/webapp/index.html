@@ -28,9 +28,7 @@
     <li class="nav-item"><a href='#index'>Accueil</a></li>
     <li class="nav-item"><a href='#connect'>Connexion</a></li>
     <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
-
     {{#loged}}
-    <li class="nav-item"><button type="button" onclick="getUserName()">Récupérer nom utilisateur</button></li>
     <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
     <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
     {{/loged}}
@@ -111,7 +109,7 @@
         });
     // Username
     let compiledUsernameTemplate;
-    precompileTemplate("menu-template")
+    precompileTemplate("username-template")
         .then((compiledUsernamePromise) => {
             compiledUsernameTemplate = compiledUsernamePromise;
         })
@@ -120,7 +118,7 @@
         });
     // Assigned-todos
     let compiledAssignedTodosTemplate;
-    precompileTemplate("menu-template")
+    precompileTemplate("assigned-todos-template")
         .then((compiledAssignedTodosPromise) => {
             compiledAssignedTodosTemplate = compiledAssignedTodosPromise;
         })
@@ -129,7 +127,7 @@
         });
     // Todos
     let compiledTodosTemplate;
-    precompileTemplate("menu-template")
+    precompileTemplate("todos-template")
         .then((compiledTodosPromise) => {
             compiledTodosTemplate = compiledTodosPromise;
         })
@@ -153,8 +151,6 @@
         }
     });
 </script>
-
-
 
 
 <div class="wrapper">
@@ -199,7 +195,7 @@
             <script>
                 document.addEventListener("DOMContentLoaded", function (event) {
                     insertCompiledTemplate(compiledLoginTemplate, user1, "login");
-                    insertCompiledTemplate(compiledUsernameTemplate, userConnected, "nom_update_input");
+                    insertCompiledTemplate(compiledUsernameTemplate, user1, "nom_update_input");
                 });
             </script>
 
@@ -233,15 +229,17 @@
             <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
             <div class="list" id="todos-container">...</div>
             <script>
-                // TODO : Remplacer le mock objets par le user connecté
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    insertCompiledTemplate(compiledTodosTemplate, { todos }, "todos-container");
+                window.addEventListener("hashchange", async function (event) {
+                    try {
+                        if (window.location.hash === "#todoList") {
+                            await addTodos(todosIds);
+                            insertCompiledTemplate(compiledTodosTemplate, { todos }, "todos-container");
+                        }
+                    } catch (err) {
+                        console.error("Error in hashchange event:", err);
+                    }
                 });
             </script>
-            <!--
-                TODO mettre en place une boucle sur les todos et afficher les données.
-                TODO recharger les informations toutes les 5 secondes.
-            -->
 
             <div class="container d-flex">
                 <div class ="row ">

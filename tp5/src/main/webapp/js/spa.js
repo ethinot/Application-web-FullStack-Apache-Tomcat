@@ -58,16 +58,19 @@ const user1 = {
 
 let userConnected;
 
+const user2 = {
+    login: "toto",
+    name: "Toto",
+    assignedTodos: null
+}
+
 let isLoged = {
     "loged": false
 }
 
-
-
-
     // Todo
 
-const todos = [todo1, todo2, todo3];
+// const todos = [todo1, todo2, todo3];
 
 
 
@@ -128,6 +131,7 @@ function displayConnected(isConnected) {
 }
 
 window.addEventListener('hashchange', () => { show(window.location.hash); });
+
 // </editor-fold>
 
 // <editor-fold desc="Gestion des requêtes asynchrones">
@@ -145,74 +149,77 @@ function isConnected() {
 /**
  * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
  */
-function getNumberOfUsers() {
-    const headers = new Headers();
-    headers.append("Accept", "application/json");
-    const requestConfig = {
-        method: "GET",
-        headers: headers,
-        mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
-    };
+async function getNumberOfUsers() {
+    try {
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
 
-    fetch(baseUrl + "users", requestConfig)
-        .then((response) => {
-            if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
-                return response.json();
-            } else {
-                throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
-            }
-        }).then((json) => {
-            if(Array.isArray(json)) {
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
+        };
+
+        const response = await fetch(baseUrl + "users", requestConfig);
+
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            const json = await response.json();
+
+            if (Array.isArray(json)) {
                 document.getElementById("nbUsers").innerText = json.length;
             } else {
                 throw new Error(json + " is not an array.");
             }
-        }).catch((err) => {
-            console.error("In getNumberOfUsers: " + err);
-        });
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In getNumberOfUsers: " + err);
+    }
 }
 
 /**
  * Met à jour le nombre de todos créer sur la vue "todoList".
  */
-function getNumberOfTodos() {
-    if (!isConnected()) {
-        console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
-        return;
-    }
-
-    const headers = new Headers();
-    headers.append("Accept", "application/json");
-    headers.append("Authorization", localStorage.getItem('jwt'));
-
-    const requestConfig = {
-        method: "GET",
-        headers: headers,
-        mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
-    };
-
-    fetch(baseUrl + "todos", requestConfig)
-        .then((response) => {
-            if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
-                return response.json();
-            } else {
-                throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
-            }
-        }).then((json) => {
-        if(Array.isArray(json)) {
-            document.getElementById("nbTodos").innerText = json.length;
-        } else {
-            throw new Error(json + " is not an array.");
+async function getNumberOfTodos() {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
         }
-    }).catch((err) => {
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
+        };
+
+        const response = await fetch(baseUrl + "todos", requestConfig);
+
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            const json = await response.json();
+
+            if (Array.isArray(json)) {
+                document.getElementById("nbTodos").innerText = json.length;
+            } else {
+                throw new Error(json + " is not an array.");
+            }
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
         console.error("In getNumberOfUsers: " + err);
-    });
+    }
 }
 
 /**
  * Envoie la requête de login en fonction du contenu des champs de l'interface.
  */
-function connect() {
+async function connect() {
     displayConnected(true);
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
@@ -226,9 +233,9 @@ function connect() {
         body: JSON.stringify(body),
         mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
     };
-    fetch(baseUrl + "users/login", requestConfig)
-        .then(async (response) => {
-            if (response.status === 204) {
+    await fetch(baseUrl + "users/login", requestConfig)
+        .then((response) => {
+            if(response.status === 204) {
                 displayRequestResult("Connexion réussie", "alert-success");
                 const authorizationHeader = response.headers.get('Authorization');
                 if (authorizationHeader) {
@@ -381,6 +388,97 @@ async function getUserName() {
     }
 }
 
+let todoStamp;
+
+/**
+ *
+ * @param todoId l'id tu todo demander.
+ * @returns {Promise<any>}
+ */
+async function getTodo(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/" + todoId, requestConfig);
+
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            const json = await response.json();
+            todoStamp = json;
+
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In getNumberOfUsers: " + err);
+    }
+}
+
+let todosIds;
+
+let todos = [];
+
+
+async function addTodos(todosIds) {
+    try {
+        const todoPromises = todosIds.map(todoId => getTodo(todoId));
+        await Promise.all(todoPromises);
+
+        todos = todos.concat(todoStamp);
+
+        console.log("Tableau fini : ", todos);
+    } catch (err) {
+        console.error("In addTodos: " + err);
+    }
+}
+
+
+/**
+ * Récupère tous les todos.
+ */
+async function getTodos() {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos", requestConfig);
+
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            const json = await response.json();
+            todosIds = json;
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In getNumberOfUsers: " + err);
+    }
+}
 
 setInterval(getNumberOfUsers, 5000);
 setInterval(getNumberOfTodos, 10000);
+setInterval(getTodos, 5000);
+
