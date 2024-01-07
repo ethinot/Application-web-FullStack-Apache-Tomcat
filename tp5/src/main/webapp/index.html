@@ -203,7 +203,7 @@
                 <tr><td>Login : </td><td><span id="login"></span></td></tr>
                 <tr>
                     <td>Nom : </td>
-                    <td><span id="nom_update_input" contenteditable="true"></span></td>
+                    <td><span id="nom_update_input" contenteditable="true">{{ name }}</span></td>
                     <td><button type="button" class="btn btn-secondary" id="user_update_button">Modifier</button></td>
                 </tr>
                 <tr>
@@ -214,12 +214,21 @@
             </table>
 
             <div>Assigné à :
-                <ul id="assigned-todo-container">...</ul>
+                <ul id="assigned-todo-container">{{.}}</ul>
             </div>
             <script>
                 // TODO : Remplacer le mock objets par le user connecté
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    insertCompiledTemplate(compiledAssignedTodosTemplate, user1AssignedTodo, "assigned-todo-container");
+                window.addEventListener("hashchange", async function () {
+                    try {
+                        if(window.location.hash === "#monCompte") {
+                            console.log("hashchange monCompte");
+                            await getTodos();
+                            insertCompiledTemplate(compiledAssignedTodosTemplate, todosIds, "assigned-todo-container");
+                            insertCompiledTemplate(compiledUsernameTemplate, userConnected, "nom_update_input")
+                        }
+                    } catch (e) {
+                        console.error("Error in hashchange event :", e);
+                    }
                 });
             </script>
         </section>

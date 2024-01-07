@@ -57,6 +57,7 @@ const user1 = {
 }
 
 let userConnected;
+let userTodos;
 
 const user2 = {
     login: "toto",
@@ -340,13 +341,13 @@ async function getConnectedUser () {
         const headers = new Headers();
         headers.append("Accept", "application/json");
         headers.append("Content-Type", "text/html");
-        headers.append("Authorization", `${tokenJWT}`);
+        headers.append("Authorization", localStorage.getItem('jwt'));
         const requestConfig = {
             method: "GET",
             headers: headers,
             mode: "cors"
         }
-        await fetch(baseUrl + "users/" + userLogin, requestConfig)
+        await fetch(baseUrl + users[0], requestConfig)
             .then((response) => {
                 if (response.ok && response.status === 200 && response.headers.get("Content-Type").includes("application/json")) {
                     return response.json();
@@ -477,6 +478,32 @@ async function getTodos() {
         console.error("In getNumberOfUsers: " + err);
     }
 }
+
+/*async function getAssignedTodos() {
+    try {
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "text/html");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method : "GET",
+            headers : headers
+        }
+
+        await fetch(baseUrl + "todos", requestConfig)
+            .then((response) => {
+                if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
+                    return response.json();
+                }
+            }).then((data) => {
+                userTodos = data;
+                return data;
+            })
+    } catch (e) {
+        console.log("In getUserName", e);
+    }
+}*/
 
 setInterval(getNumberOfUsers, 5000);
 setInterval(getNumberOfTodos, 10000);
