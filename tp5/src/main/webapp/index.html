@@ -47,25 +47,16 @@
     {{#if nbTodos}}
     <table>
         <thead>
-            <tr>
-                <th></th>
-                <th>Titre</th>
-                <th>Assigné à</th>
-                <th></th>
-                <th></th>
-            </tr>
+        <tr>
+            <th></th>
+            <th>Titre</th>
+            <th>Assigné à</th>
+            <th></th>
+            <th></th>
+        </tr>
         </thead>
         <tbody>
         {{#todosList}}
-        {{#isMe}}
-        <tr class="special">
-            <td>{{{checkBox}}}</td>
-            <td>{{title}}</td>
-            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>Me retirer ce todo</button></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
-        </tr>
-        {{/isMe}}
         <tr>
             <td>{{{checkBox}}}</td>
             <td>{{title}}</td>
@@ -78,6 +69,45 @@
     </table>
     {{/if}}
 </script>
+
+<!--
+<script id="todos-template" type="text/template">
+    {{#if nbTodos}}
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Titre</th>
+                <th>Assigné à</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#todosList}}
+        {{#if isAssignee}}
+        <tr class="special">
+            <td>{{{checkBox}}}</td>
+            <td>{{title}}</td>
+            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>Me retirer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+        </tr>
+        {{else}}
+        <tr>
+            <td>{{{checkBox}}}</td>
+            <td>{{title}}</td>
+            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+        </tr>
+        {{/if}}
+        {{/todosList}}
+        </tbody>
+    </table>
+    {{/if}}
+</script>
+-->
 
 <!-- Pré-compilation des template-->
 <script>
@@ -226,7 +256,7 @@
                 window.addEventListener("hashchange", async function (event) {
                     try {
                         if (window.location.hash === "#todoList") {
-                            await addTodos(todosIds);
+                            await createTodosList();
                             insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
                         }
                     } catch (err) {
@@ -244,7 +274,7 @@
                         <input class="form-control" type="text" id="text" size="50">
                     </div>
                     <div class="col-sm-2">
-                        <button type="button" class="btn btn-secondary" id="addTodo_button">Créer un nouveau todo</button>
+                        <button type="button" class="btn btn-secondary" id="addTodo_button" onclick="createTodo()">Créer un nouveau todo</button>
                     </div>
                 </div>
             </div>
