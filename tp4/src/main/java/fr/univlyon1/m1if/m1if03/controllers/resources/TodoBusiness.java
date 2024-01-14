@@ -25,7 +25,7 @@ public class TodoBusiness {
      * Modifie le statut d'un todo.
      * @param todoHash le hash du todo à modifier
      */
-    public void modifyStatus(@Positive int todoHash) throws IllegalArgumentException, NoSuchElementException {
+    public void modifyStatus(int todoHash) throws IllegalArgumentException, NoSuchElementException {
         boolean actuelStatus = todoDao.findByHash(todoHash).isCompleted();
         todoDao.findByHash(todoHash).setCompleted(!actuelStatus);
         todoDao.findByHash(todoHash).updateCheckBox();
