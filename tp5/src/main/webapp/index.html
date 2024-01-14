@@ -59,8 +59,8 @@
         <tr>
             <td>{{{checkBox}}}</td>
             <td>{{title}}</td>
-            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
+            <td>{{assignee}}</td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}})">M'attribuer ce todo</button></td>
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
         </tr>
         {{/todosList}}
