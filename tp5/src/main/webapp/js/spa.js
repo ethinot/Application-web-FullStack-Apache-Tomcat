@@ -427,7 +427,7 @@ async function getConnectedUser () {
             headers: headers,
             mode: "cors"
         }
-        await fetch(baseUrl + users[0], requestConfig)
+        await fetch(baseUrl + "users/" + connectedUser.login, requestConfig)
             .then((response) => {
                 if (response.ok && response.status === 200 && response.headers.get("Content-Type").includes("application/json")) {
                     return response.json();
@@ -514,6 +514,7 @@ async function fetchTodo(todoId) {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
+            return json;
 
             const isTodoAlreadyPresent = todoArray.some(todo => todo.hash === json.hash);
 
@@ -538,8 +539,8 @@ async function getAssignedTodos() {
 
         let assignedTodos = [];
         userTodos = [];
-        for (const todoId of userConnected.assignedTodos) {
-            const todo = await getTodo(todoId).then(data => {assignedTodos = data; return assignedTodos}) ;
+        for (const todoId of connectedUser.assignedTodos) {
+            const todo = await fetchTodo(todoId).then(data => {assignedTodos = data; return assignedTodos}) ;
             userTodos.push(todo);
         }
 

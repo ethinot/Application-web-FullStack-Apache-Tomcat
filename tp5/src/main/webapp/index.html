@@ -215,8 +215,8 @@
                     try{
                         if(document.location.hash === "#monCompte") {
                             await getConnectedUser();
-                            insertCompiledTemplate(compiledLoginTemplate, userConnected, "login");
-                            insertCompiledTemplate(compiledUsernameTemplate, userConnected, "nom_update_input");
+                            insertCompiledTemplate(compiledLoginTemplate, connectedUser, "login");
+                            insertCompiledTemplate(compiledUsernameTemplate, connectedUser, "nom_update_input");
                         }
                     } catch (e) {
                         console.error("Error in hashchange event : ", e)
@@ -248,9 +248,9 @@
                     try {
                         if(window.location.hash === "#monCompte") {
                             console.log("hashchange monCompte");
-                            await getConnectedUser();
+                            await getUser(connectedUser.login, connectedUser);
                             await getAssignedTodos();
-                            const todoTmp = {assignedTodos : userTodos}
+                            const todoTmp = { assignedTodos : userTodos}
                             insertCompiledTemplate(compiledAssignedTodosTemplate, todoTmp, "assigned-todo-container");
                         }
                     } catch (e) {
