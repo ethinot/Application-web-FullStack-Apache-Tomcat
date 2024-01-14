@@ -6,10 +6,11 @@
 
     // User
 
-const users = [
+/*const users = [
     "users/toto",
     "users/titi"
-]
+]*/
+
 
 
 const user1Name = {
@@ -366,6 +367,33 @@ async function setPassword(userId) {
         }
     } catch (err) {
         console.error("In setPassword(): " + err);
+    }
+}
+
+async function getConnectedUser () {
+    try {
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "text/html");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        }
+        await fetch(baseUrl + users[0], requestConfig)
+            .then((response) => {
+                if (response.ok && response.status === 200 && response.headers.get("Content-Type").includes("application/json")) {
+                    return response.json();
+                }
+            }).then((data) => {
+                if (Array.isArray(data)) {
+                    console.log(data);
+                }
+            });
+    }
+    catch (err) {
+        console.log("In getConnectedUser", err);
     }
 }
 
