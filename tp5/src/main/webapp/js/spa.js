@@ -61,13 +61,13 @@ const user2 = {
 let users = []
 
 let user = {
-    "login": "",
-    "name": "",
-    "assignedTodos": []
+    login: "",
+    name: "",
+    assignedTodos: []
 }
 
 let isLoged = {
-    "loged": false,
+    loged: false
 }
 
     // Todo
@@ -125,11 +125,13 @@ function displayRequestResult(text, cssClass = "alert-info") {
  */
 function displayConnected(isConnected) {
     updateLogedStatus(isConnected);
+
     const elementsRequiringConnection = document.getElementsByClassName("requiresConnection");
     const visibilityValue = isConnected ? "visible" : "collapse";
-    for(const element of elementsRequiringConnection) {
+
+    Array.from(elementsRequiringConnection).forEach(element => {
         element.style.visibility = visibilityValue;
-    }
+    });
 }
 
 window.addEventListener('hashchange', () => { show(window.location.hash); });
@@ -207,43 +209,51 @@ function getUserName() {
  * Envoie la requête de login en fonction du contenu des champs de l'interface.
  */
 async function connect() {
-    displayConnected(true);
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
+
     const body = {
         login: document.getElementById("login_input").value,
         password: document.getElementById("password_input").value
     };
+
     const requestConfig = {
         method: "POST",
         headers: headers,
         body: JSON.stringify(body),
         mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
     };
-    await fetch(baseUrl + "users/login", requestConfig)
-        .then((response) => {
-            if(response.status === 204) {
-                displayRequestResult("Connexion réussie", "alert-success");
-                const authorizationHeader = response.headers.get('Authorization');
-                if (authorizationHeader) {
-                    localStorage.setItem('jwt', authorizationHeader);
-                    isLoged.loged = true;
-                    console.log("In login: Authorization = " + authorizationHeader);
-                } else {
-                    console.error('Le header "Authorization" est manquant dans la réponse.');
-                }
-                location.hash = "#index";
+
+    try {
+        const response = await fetch(baseUrl + "users/login", requestConfig);
+
+        if (response.status === 204) {
+            displayRequestResult("Connexion réussie", "alert-success");
+            console.log("Je passe la dispaly à true !!");
+            displayConnected(true);
+
+            const authorizationHeader = response.headers.get('Authorization');
+
+            if (authorizationHeader) {
+                localStorage.setItem('jwt', authorizationHeader);
+                user.login = body.login;
+                // Todo : Appellez un fonction qui vas get le user et update l'obj user
+                console.log("In login: Authorization = " + authorizationHeader);
             } else {
-                displayRequestResult("Connexion refusée ou impossible", "alert-danger");
-                throw new Error("Bad response code (" + response.status + ").");
+                console.error('Le header "Authorization" est manquant dans la réponse.');
             }
-        })
-        .catch((err) => {
-            console.error("In login: " + err);
-        })
+
+            location.hash = "#index";
+        } else {
+            displayRequestResult("Connexion refusée ou impossible", "alert-danger");
+            throw new Error("Bad response code (" + response.status + ").");
+        }
+    } catch (err) {
+        console.error("In connect: " + err);
+    }
 }
 
-function disconnect() {
+async function disconnect() {
     isLoged.loged = false;
     user.login = "";
     user.name = "";
@@ -282,21 +292,20 @@ function insertCompiledTemplate(compiledTemplate,data, targetId) {
     document.getElementById(targetId).innerHTML = compiledTemplate(data);
 }
 
-
 function updateLogedStatus(newStatus) {
     isLoged.loged = newStatus;
-    // Todo un peu chelou de faire ca pourquoi c'est lui qui fait ca ?
-    renderTemplate('menu-template', isLoged, 'menu-container');
+    insertCompiledTemplate(compiledMenuTemplate, isLoged, "menu-container");
 }
 
 async function setUsername(userId) {
     try {
         if (!isConnected()) {
-            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            console.error("L'utilisateur n'est pas connecté. Impossible de change son nom.");
             return;
         }
 
         const headers = new Headers();
+        headers.append("Accept", "application/json");
         headers.append("Content-Type", "application/json");
         headers.append("Authorization", localStorage.getItem('jwt'));
 
@@ -316,6 +325,7 @@ async function setUsername(userId) {
         if (response.status === 204) {
             displayRequestResult("Modification du nom réussis", "alert-success");
             user.name = body.name;
+            // Todo déclacher un mise à jour
             location.hash = "#monCompte";
         } else {
             displayRequestResult("Erreur lors de la modification du nom ", "alert-danger");
@@ -325,29 +335,6 @@ async function setUsername(userId) {
         console.error("In setUsername(): " + err);
     }
 }
-
-// await fetch(baseUrl + "users/login", requestConfig)
-//     .then((response) => {
-//         if(response.status === 204) {
-//             displayRequestResult("Connexion réussie", "alert-success");
-//             const authorizationHeader = response.headers.get('Authorization');
-//             if (authorizationHeader) {
-//                 localStorage.setItem('jwt', authorizationHeader);
-//                 console.log("In login: Authorization = " + authorizationHeader);
-//             } else {
-//                 console.error('Le header "Authorization" est manquant dans la réponse.');
-//             }
-//             location.hash = "#index";
-//         } else {
-//             displayRequestResult("Connexion refusée ou impossible", "alert-danger");
-//             throw new Error("Bad response code (" + response.status + ").");
-//         }
-//     })
-//     .catch((err) => {
-//         console.error("In login: " + err);
-//     })
-
-
 
 let todoStamp;
 
