@@ -57,7 +57,8 @@ const user1 = {
 }
 
 let userConnected;
-let userTodos;
+let userName;
+let userTodos = [];
 
 const user2 = {
     login: "toto",
@@ -353,9 +354,8 @@ async function getConnectedUser () {
                     return response.json();
                 }
             }).then((data) => {
-                if (Array.isArray(data)) {
-                    console.log(data);
-                }
+                console.log(data);
+                userConnected = data;
             });
     }
     catch (err) {
@@ -363,7 +363,7 @@ async function getConnectedUser () {
     }
 }
 
-async function getUserName() {
+/*async function getUserName() {
     try {
         const headers = new Headers();
         headers.append("Accept", "application/json");
@@ -381,13 +381,13 @@ async function getUserName() {
                     return response.json();
                 }
             }).then((data) => {
-                userConnected = data;
+                userName = data.name;
                 return data;
             })
     } catch (e) {
         console.log("In getUserName", e);
     }
-}
+}*/
 
 let todoStamp;
 
@@ -417,13 +417,38 @@ async function getTodo(todoId) {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-            todoStamp = json;
+            return todoStamp = json;
+            console.log(todoStamp);
 
         } else {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
         console.error("In getNumberOfUsers: " + err);
+    }
+}
+
+async function getAssignedTodos() {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
+        }
+
+        let assignedTodos = [];
+        userTodos = [];
+        for (const todoId of userConnected.assignedTodos) {
+            const todo = await getTodo(todoId).then(data => {assignedTodos = data; return assignedTodos}) ;
+            userTodos.push(todo);
+        }
+
+        // Stocker les todos dans une variable ou faire ce que vous voulez avec eux
+        console.log(assignedTodos);
+
+        // Vous pouvez également retourner le tableau d'objets si nécessaire
+        return assignedTodos;
+    } catch (err) {
+        console.error("In getAssignedTodos: " + err);
     }
 }
 
@@ -470,7 +495,6 @@ async function getTodos() {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-            todosIds = json;
         } else {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }

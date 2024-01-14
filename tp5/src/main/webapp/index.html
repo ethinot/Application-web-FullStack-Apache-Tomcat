@@ -143,7 +143,7 @@
     window.addEventListener("hashchange", async function() {
         try {
             if(window.location.hash === "#connect") {
-                await getUserName();
+                await getConnectedUser();
                 insertCompiledTemplate(compiledHeaderTemplate, userConnected, "header-container");
             }
         } catch (e) {
@@ -193,9 +193,17 @@
         <section id='monCompte' class='inactive'>
             <h2>Mon compte</h2>
             <script>
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    insertCompiledTemplate(compiledLoginTemplate, user1, "login");
-                    insertCompiledTemplate(compiledUsernameTemplate, user1, "nom_update_input");
+                window.addEventListener("hashchange", async function () {
+                    try{
+                        if(document.location.hash === "#monCompte") {
+                            await getConnectedUser();
+                            insertCompiledTemplate(compiledLoginTemplate, userConnected, "login");
+                            insertCompiledTemplate(compiledUsernameTemplate, userConnected, "nom_update_input");
+                        }
+                    } catch (e) {
+                        console.error("Error in hashchange event : ", e)
+                    }
+
                 });
             </script>
 
@@ -214,7 +222,7 @@
             </table>
 
             <div>Assigné à :
-                <ul id="assigned-todo-container">{{.}}</ul>
+                    <ul id="assigned-todo-container"></ul>
             </div>
             <script>
                 // TODO : Remplacer le mock objets par le user connecté
@@ -222,9 +230,10 @@
                     try {
                         if(window.location.hash === "#monCompte") {
                             console.log("hashchange monCompte");
-                            await getTodos();
-                            insertCompiledTemplate(compiledAssignedTodosTemplate, todosIds, "assigned-todo-container");
-                            insertCompiledTemplate(compiledUsernameTemplate, userConnected, "nom_update_input")
+                            await getConnectedUser();
+                            await getAssignedTodos();
+                            const todoTmp = {assignedTodos : userTodos}
+                            insertCompiledTemplate(compiledAssignedTodosTemplate, todoTmp, "assigned-todo-container");
                         }
                     } catch (e) {
                         console.error("Error in hashchange event :", e);
@@ -238,7 +247,7 @@
             <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
             <div class="list" id="todos-container">...</div>
             <script>
-                window.addEventListener("hashchange", async function (event) {
+                window.addEventListener("hashchange", async function () {
                     try {
                         if (window.location.hash === "#todoList") {
                             await addTodos(todosIds);
