@@ -600,6 +600,11 @@ async function fetchTodosIds() {
 
 async function createTodosList() {
     try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
+        }
+        todoArray = [];
         await fetchTodosIds();
         const todoPromises = todosIds.map(todoId => fetchTodo(todoId));
         const resolvedTodos = await Promise.all(todoPromises);
@@ -618,7 +623,7 @@ async function createTodosList() {
 
         todos.nbTodos = todos.todosList.length;
 
-        console.log("Tableau fini : ", todos);
+        insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
     } catch (err) {
         console.error("In createTodosList: " + err);
     }
@@ -762,6 +767,6 @@ async function getNumberOfTodos() {
 setInterval(getNumberOfUsers, 5000);
 
 setInterval(getNumberOfTodos, 10000);
-setInterval(fetchTodosIds, 5000);
+setInterval(createTodosList, 5000);
 
 
