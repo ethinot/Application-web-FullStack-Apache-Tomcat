@@ -229,7 +229,6 @@ async function connect() {
 
         if (response.status === 204) {
             displayRequestResult("Connexion réussie", "alert-success");
-            console.log("Je passe la dispaly à true !!");
             displayConnected(true);
 
             const authorizationHeader = response.headers.get('Authorization');
@@ -297,10 +296,12 @@ function updateLogedStatus(newStatus) {
     insertCompiledTemplate(compiledMenuTemplate, isLoged, "menu-container");
 }
 
+// Todo add function for re-render (insert) template when the name is modifie
+
 async function setUsername(userId) {
     try {
         if (!isConnected()) {
-            console.error("L'utilisateur n'est pas connecté. Impossible de change son nom.");
+            console.error("L'utilisateur n'est pas connecté. Impossible de changer son nom.");
             return;
         }
 
@@ -335,6 +336,45 @@ async function setUsername(userId) {
         console.error("In setUsername(): " + err);
     }
 }
+
+async function setPassword(userId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de changer son mot de passe.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            password: document.getElementById('password_update_input').value
+        };
+
+        const requestConfig = {
+            method: "PUT",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "users/" + userId, requestConfig);
+
+        if (response.status === 204) {
+            displayRequestResult("Modification du mot de passe réussis", "alert-success");
+            user.name = body.name;
+            location.hash = "#monCompte";
+        } else {
+            displayRequestResult("Erreur lors de la modification du mot de passe ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In setPassword(): " + err);
+    }
+}
+
 
 let todoStamp;
 
