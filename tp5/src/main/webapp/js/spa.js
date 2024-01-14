@@ -590,6 +590,46 @@ async function createTodosList() {
     }
 }
 
+async function updateAssigned(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de modifier l'utilisateur assignée à ce todo.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            assignee: connectedUser.login
+        };
+
+        const requestConfig = {
+            method: "PUT",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/" + todoId, requestConfig);
+
+        if (response.status === 204) {
+            displayRequestResult("Modification de l'utilisateur assignée réussis", "alert-success");
+            todoArray = [];
+            await createTodosList();
+            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+
+        } else {
+            displayRequestResult("Erreur lors de la modification de l'utilisateur assignée ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In updateAssigned(): " + err);
+    }
+}
+
 async function getNumberOfTodos() {
     if (!isConnected()) {
         return;
