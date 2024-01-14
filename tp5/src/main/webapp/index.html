@@ -59,7 +59,7 @@
         <tr>
             <td>{{{checkBox}}}</td>
             <td>{{title}}</td>
-            <td>{{assignee}}</td>
+            <td class="tootlip {{assignee}}" >{{assignee}} <span class="tooltiptext"></span></td>
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}})">M'attribuer ce todo</button></td>
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
         </tr>
@@ -265,10 +265,11 @@
             <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
             <div class="list" id="todos-container">...</div>
             <script>
-                window.addEventListener("hashchange", async function (event) {
+                window.addEventListener("hashchange", async function () {
                     try {
                         if (window.location.hash === "#todoList") {
                             await createTodosList();
+                            await getUser(connectedUser.login, connectedUser);
                             insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
                         }
                     } catch (err) {

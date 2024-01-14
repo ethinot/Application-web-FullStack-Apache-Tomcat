@@ -514,7 +514,7 @@ async function fetchTodo(todoId) {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-            return json;
+
 
             const isTodoAlreadyPresent = todoArray.some(todo => todo.hash === json.hash);
 
@@ -530,6 +530,37 @@ async function fetchTodo(todoId) {
     }
 }
 
+async function fetchAssignedTodo(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/" + todoId, requestConfig);
+
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            return await response.json();
+
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In fetchTodo : " + err);
+    }
+}
+
+
 async function getAssignedTodos() {
     try {
         if (!isConnected()) {
@@ -540,7 +571,7 @@ async function getAssignedTodos() {
         let assignedTodos = [];
         userTodos = [];
         for (const todoId of connectedUser.assignedTodos) {
-            const todo = await fetchTodo(todoId).then(data => {assignedTodos = data; return assignedTodos}) ;
+            const todo = await fetchAssignedTodo(todoId).then(data => {assignedTodos = data; return assignedTodos}) ;
             userTodos.push(todo);
         }
 
