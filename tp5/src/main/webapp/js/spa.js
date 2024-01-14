@@ -6,6 +6,13 @@
 
     // User
 
+/*const users = [
+    "users/toto",
+    "users/titi"
+]*/
+
+
+
 const user1Name = {
     "name": "ALBERT"
 }
@@ -291,8 +298,6 @@ function insertCompiledTemplate(compiledTemplate, data, targetId) {
     document.getElementById(targetId).innerHTML = compiledTemplate(data);
 }
 
-
-
 function updateLogedStatus(newStatus) {
     isLoged.loged = newStatus;
     insertCompiledTemplate(compiledMenuTemplate, isLoged, "menu-container");
@@ -362,9 +367,11 @@ async function setUsername(userId) {
 
         if (response.status === 204) {
             displayRequestResult("Modification du nom réussis", "alert-success");
-            connectedUser.name = body.name;
-            // Todo déclacher un mise à jour
-            location.hash = "#monCompte";
+
+            await getUser(connectedUser.login, connectedUser);
+            insertCompiledTemplate(compiledHeaderTemplate, connectedUser, "header-container");
+            displayConnected(true);
+
         } else {
             displayRequestResult("Erreur lors de la modification du nom ", "alert-danger");
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
@@ -408,6 +415,33 @@ async function setPassword(userId) {
         }
     } catch (err) {
         console.error("In setPassword(): " + err);
+    }
+}
+
+async function getConnectedUser () {
+    try {
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "text/html");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        }
+        await fetch(baseUrl + "users/" + connectedUser.login, requestConfig)
+            .then((response) => {
+                if (response.ok && response.status === 200 && response.headers.get("Content-Type").includes("application/json")) {
+                    return response.json();
+                }
+            }).then((data) => {
+                if (Array.isArray(data)) {
+                    console.log(data);
+                }
+            });
+    }
+    catch (err) {
+        console.log("In getConnectedUser", err);
     }
 }
 
@@ -517,6 +551,7 @@ async function fetchTodo(todoId) {
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
 
+
             const isTodoAlreadyPresent = todoArray.some(todo => todo.hash === json.hash);
 
             if (!isTodoAlreadyPresent) {
@@ -531,6 +566,37 @@ async function fetchTodo(todoId) {
     }
 }
 
+async function fetchAssignedTodo(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/" + todoId, requestConfig);
+
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            return await response.json();
+
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In fetchTodo : " + err);
+    }
+}
+
+
 async function getAssignedTodos() {
     try {
         if (!isConnected()) {
@@ -540,8 +606,8 @@ async function getAssignedTodos() {
 
         let assignedTodos = [];
         userTodos = [];
-        for (const todoId of userConnected.assignedTodos) {
-            const todo = await getTodo(todoId).then(data => {assignedTodos = data; return assignedTodos}) ;
+        for (const todoId of connectedUser.assignedTodos) {
+            const todo = await fetchAssignedTodo(todoId).then(data => {assignedTodos = data; return assignedTodos}) ;
             userTodos.push(todo);
         }
 
