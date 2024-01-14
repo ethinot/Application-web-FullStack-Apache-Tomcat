@@ -142,7 +142,7 @@ window.addEventListener('hashchange', () => { show(window.location.hash); });
  */
 function isConnected() {
     const jwtToken = localStorage.getItem('jwt');
-    return !!jwtToken;
+    return !!jwtToken && isLoged.loged;
 }
 
 /**
@@ -216,6 +216,7 @@ async function connect() {
                 const authorizationHeader = response.headers.get('Authorization');
                 if (authorizationHeader) {
                     localStorage.setItem('jwt', authorizationHeader);
+                    isLoged.loged = true;
                     console.log("In login: Authorization = " + authorizationHeader);
                 } else {
                     console.error('Le header "Authorization" est manquant dans la réponse.');
@@ -231,67 +232,12 @@ async function connect() {
         })
 }
 
-// async function deco() {
-//     if (!isConnected()) {
-//         console.error("L'utilisateur n'est pas connecté. Impossible de le déconnecter.");
-//         return;
-//     }
-//
-//     const headers = new Headers();
-//     headers.append("Content-Type", "application/json");
-//     headers.append("Authorization", localStorage.getItem('jwt'));
-//
-//     const requestConfig = {
-//         method: "POST",
-//         headers: headers,
-//         mode: "cors",
-//     };
-//
-//     await fetch(baseUrl + "users/logout", requestConfig)
-//         .then((response) => {
-//             console.log("Réponse complète :", response);
-//             return response.text();
-//         })
-//         .then((responseText) => {
-//             console.log("Contenu de la réponse :", responseText);
-//             if (response.status === 204) {
-//                 localStorage.removeItem("jwt");
-//                 displayRequestResult("Déconnexion réussie", "alert-success");
-//                 location.hash = "#index";
-//             } else {
-//                 displayRequestResult("Déconnexion échouée", "alert-danger");
-//                 throw new Error("Code de réponse incorrect (" + response.status + ").");
-//             }
-//         })
-//         .catch((err) => {
-//             console.error("Erreur lors de la déconnexion : " + err);
-//         });
-//
-//     displayConnected(false);
-// }
+function disconnect() {
+    isLoged.loged = false;
+    localStorage.removeItem("jwt");
 
-function deco() {
-    const headers = new Headers();
-    headers.append("Content-Type", "application/json");
-    headers.append("Authorization", localStorage.getItem('jwt'));
-    const requestConfig = {
-        method : "POST",
-        headers : headers,
-        mode : "cors"
-    };
-    fetch(baseUrl + "users/logout", requestConfig)
-        .then((response) => {
-            if (response.status === 204){
-                displayRequestResult("Déconnexion réussie", "alert-success");
-                location.hash = "#index";
-            } else {
-                displayRequestResult("Déconnexion échouée", "alert-danger");
-                throw new Error("Bad response code (" + response.status + ").");
-            }
-        })
-        .catch((err) => {
-            console.error("In logout " + err);
-        })
+    location.hash = "#index";
+    displayRequestResult("Déconnexion réussie", "alert-success");
     displayConnected(false);
 }
 
@@ -354,6 +300,59 @@ function getAllUsers () {
     const users = response.json();
     console.log(users);*/
 }
+
+async function setUsername(userId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method: "PUT",
+            headers: headers,
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "user/" + userId, requestConfig);
+
+        if (response.status === 204) {
+
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In getNumberOfUsers: " + err);
+    }
+}
+
+
+// await fetch(baseUrl + "users/login", requestConfig)
+//     .then((response) => {
+//         if(response.status === 204) {
+//             displayRequestResult("Connexion réussie", "alert-success");
+//             const authorizationHeader = response.headers.get('Authorization');
+//             if (authorizationHeader) {
+//                 localStorage.setItem('jwt', authorizationHeader);
+//                 console.log("In login: Authorization = " + authorizationHeader);
+//             } else {
+//                 console.error('Le header "Authorization" est manquant dans la réponse.');
+//             }
+//             location.hash = "#index";
+//         } else {
+//             displayRequestResult("Connexion refusée ou impossible", "alert-danger");
+//             throw new Error("Bad response code (" + response.status + ").");
+//         }
+//     })
+//     .catch((err) => {
+//         console.error("In login: " + err);
+//     })
+
+
 
 let todoStamp;
 
@@ -468,6 +467,8 @@ async function getNumberOfTodos() {
 }
 
 setInterval(getNumberOfUsers, 5000);
+
 setInterval(getNumberOfTodos, 10000);
 setInterval(getTodos, 5000);
+
 
