@@ -457,9 +457,8 @@ async function getTodos() {
 
 async function getNumberOfTodos() {
     try {
-        await getTodos(); // Call the getTodos function to fetch todos
+        await getTodos();
 
-        // Assuming getTodos updates the global variable todos
         const numberOfTodos = todos.todosList.length;
 
         document.getElementById("nbTodos").innerText = numberOfTodos;
