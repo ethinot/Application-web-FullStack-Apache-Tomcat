@@ -6,12 +6,6 @@
 
     // User
 
-const users = [
-    "users/toto",
-    "users/titi"
-]
-
-
 const user1Name = {
     "name": "ALBERT"
 }
@@ -63,8 +57,17 @@ const user2 = {
     assignedTodos: null
 }
 
+
+let users = []
+
+let user = {
+    "login": "",
+    "name": "",
+    "assignedTodos": []
+}
+
 let isLoged = {
-    "loged": false
+    "loged": false,
 }
 
     // Todo
@@ -145,10 +148,7 @@ function isConnected() {
     return !!jwtToken && isLoged.loged;
 }
 
-/**
- * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
- */
-async function getNumberOfUsers() {
+async function getUsers() {
     try {
         const headers = new Headers();
         headers.append("Accept", "application/json");
@@ -163,15 +163,26 @@ async function getNumberOfUsers() {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-
             if (Array.isArray(json)) {
-                document.getElementById("nbUsers").innerText = json.length;
+                users = json;
             } else {
                 throw new Error(json + " is not an array.");
             }
         } else {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
+    } catch (err) {
+        console.error("In getUsers: " + err);
+    }
+}
+
+/**
+ * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
+ */
+async function getNumberOfUsers() {
+    try {
+        await getUsers();
+        document.getElementById("nbUsers").innerText = users.length;
     } catch (err) {
         console.error("In getNumberOfUsers: " + err);
     }
@@ -234,6 +245,10 @@ async function connect() {
 
 function disconnect() {
     isLoged.loged = false;
+    user.login = "";
+    user.name = "";
+    user.assignedTodos = [];
+
     localStorage.removeItem("jwt");
 
     location.hash = "#index";
@@ -270,35 +285,8 @@ function insertCompiledTemplate(compiledTemplate,data, targetId) {
 
 function updateLogedStatus(newStatus) {
     isLoged.loged = newStatus;
+    // Todo un peu chelou de faire ca pourquoi c'est lui qui fait ca ?
     renderTemplate('menu-template', isLoged, 'menu-container');
-}
-
-function getAllUsers () {
-    const headers = new Headers();
-    const requestConfig = {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        mode : "cors",
-        accept: "application/json"
-    };
-    fetch(baseUrl + "users", requestConfig)
-        .then((response) => {
-                return response.json()
-            }
-            ).then(res => {
-                console.log(res);
-            });
-    /*const requestConfig = {
-        credential: "include",
-        accept : "application/json"
-
-    }
-    const response = fetch(baseUrl + "user", requestConfig);
-    const users = response.json();
-    console.log(users);*/
 }
 
 async function setUsername(userId) {
@@ -309,27 +297,34 @@ async function setUsername(userId) {
         }
 
         const headers = new Headers();
-        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
         headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            name: document.getElementById('nom_update_input').innerText
+        };
 
         const requestConfig = {
             method: "PUT",
             headers: headers,
+            body: JSON.stringify(body),
             mode: "cors"
         };
 
-        const response = await fetch(baseUrl + "user/" + userId, requestConfig);
+        const response = await fetch(baseUrl + "users/" + userId, requestConfig);
 
         if (response.status === 204) {
-
+            displayRequestResult("Modification du nom réussis", "alert-success");
+            user.name = body.name;
+            location.hash = "#monCompte";
         } else {
+            displayRequestResult("Erreur lors de la modification du nom ", "alert-danger");
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getNumberOfUsers: " + err);
+        console.error("In setUsername(): " + err);
     }
 }
-
 
 // await fetch(baseUrl + "users/login", requestConfig)
 //     .then((response) => {
@@ -388,7 +383,7 @@ async function getTodo(todoId) {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getNumberOfUsers: " + err);
+        console.error("In getTodo : " + err);
     }
 }
 
@@ -450,7 +445,7 @@ async function getTodos() {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getNumberOfUsers: " + err);
+        console.error("In getTodos: " + err);
     }
 }
 
