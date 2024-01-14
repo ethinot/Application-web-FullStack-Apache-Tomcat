@@ -604,32 +604,24 @@ async function createTodosList() {
             console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
             return;
         }
-        todoArray = [];
         await fetchTodosIds();
         const todoPromises = todosIds.map(todoId => fetchTodo(todoId));
         const resolvedTodos = await Promise.all(todoPromises);
-        console.log("Resolved Todos :" + resolvedTodos);
-
-        //const uniqueTodos = resolvedTodos.filter(newTodo => !todos.todosList.some(existingTodo => existingTodo.hash === newTodo.hash));
 
         todos.todosList = todoArray;
 
         todos.todosList.forEach(function(todo) {
-            if (todo) {
-                let assignee = todo.assignee ?? "";
-                todo.isAssignee = assignee === connectedUser.login;
-            }
+            let assignee = todo.assignee ?? "";
+            todo.isAssignee = assignee === connectedUser.login;
         });
 
         todos.nbTodos = todos.todosList.length;
-
-        insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
     } catch (err) {
         console.error("In createTodosList: " + err);
     }
 }
 
-async function updateAssigned(todoId) {
+async function updateAssigned(todoId, login) {
     try {
         if (!isConnected()) {
             console.error("L'utilisateur n'est pas connecté. Impossible de modifier l'utilisateur assignée à ce todo.");
@@ -642,7 +634,7 @@ async function updateAssigned(todoId) {
         headers.append("Authorization", localStorage.getItem('jwt'));
 
         const body = {
-            assignee: connectedUser.login
+            assignee: login
         };
 
         const requestConfig = {
@@ -764,9 +756,20 @@ async function getNumberOfTodos() {
     }
 }
 
+async function updateTodosList() {
+    if (!isConnected()) {
+        console.error("L'utilisateur n'est pas connecté. Impossible de modifier le status de ce todo.");
+        return;
+    }
+
+    todoArray = [];
+    await createTodosList();
+    insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+}
+
 setInterval(getNumberOfUsers, 5000);
 
 setInterval(getNumberOfTodos, 10000);
-setInterval(createTodosList, 5000);
+setInterval(updateTodosList, 5000);
 
 
