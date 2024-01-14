@@ -17,7 +17,6 @@
 <!-- Templates -->
 <script id="header-template" type="text/template">
     <h1 class="header-titre">MIF-TODOS</h1>
-    <!-- TODO : Ajouter une condition de connection pour la div qui suit -->
     <div class="wrapper">
         <p class="header-user requiresConnection">Bonjour <strong>{{ name }}</strong></p>
         <p class="header-deco requiresConnection"><a href='#deco'>Déconnexion</a></p>
@@ -167,13 +166,9 @@
         });
 </script>
 
-<header id="header-container"></header>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        insertCompiledTemplate(compiledHeaderTemplate, user, "header-container");
-    });
-</script>
+<header id="header-container">
+    <h1 class="header-titre">MIF-TODOS</h1>
+</header>
 
 
 <div class="wrapper">
@@ -216,10 +211,17 @@
         <section id='monCompte' class='inactive'>
             <h2>Mon compte</h2>
             <script>
-                // Todo : faire comme le get des todos et écouter l'event hashchange
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    insertCompiledTemplate(compiledLoginTemplate, user1, "login");
-                    insertCompiledTemplate(compiledUsernameTemplate, user1, "nom_update_input");
+                window.addEventListener("hashchange", async function () {
+                    try{
+                        if(document.location.hash === "#monCompte") {
+                            await getConnectedUser();
+                            insertCompiledTemplate(compiledLoginTemplate, userConnected, "login");
+                            insertCompiledTemplate(compiledUsernameTemplate, userConnected, "nom_update_input");
+                        }
+                    } catch (e) {
+                        console.error("Error in hashchange event : ", e)
+                    }
+
                 });
             </script>
 
@@ -228,12 +230,12 @@
                 <tr>
                     <td>Nom : </td>
                     <td><span id="nom_update_input" contenteditable="true"></span></td>
-                    <td><button type="button" class="btn btn-secondary" id="user_update_button" onclick="setUsername(user.login)">Modifier</button></td>
+                    <td><button type="button" class="btn btn-secondary" id="user_update_button" onclick="setUsername(connectedUser.login)">Modifier</button></td>
                 </tr>
                 <tr>
                     <td><label for="password_update_input">Mot de passe :</label></td>
                     <td><input class="form-control" type="password" id="password_update_input"></td>
-                    <td><button type="button" class="btn btn-secondary" id="password_update_button" onclick="setPassword(user.login)">Modifier</button></td>
+                    <td><button type="button" class="btn btn-secondary" id="password_update_button" onclick="setPassword(connectedUser.login)">Modifier</button></td>
                 </tr>
             </table>
 
@@ -242,8 +244,18 @@
             </div>
             <script>
                 // TODO : Remplacer le mock objets par le user connecté
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    insertCompiledTemplate(compiledAssignedTodosTemplate, user1AssignedTodo, "assigned-todo-container");
+                window.addEventListener("hashchange", async function () {
+                    try {
+                        if(window.location.hash === "#monCompte") {
+                            console.log("hashchange monCompte");
+                            await getConnectedUser();
+                            await getAssignedTodos();
+                            const todoTmp = {assignedTodos : userTodos}
+                            insertCompiledTemplate(compiledAssignedTodosTemplate, todoTmp, "assigned-todo-container");
+                        }
+                    } catch (e) {
+                        console.error("Error in hashchange event :", e);
+                    }
                 });
             </script>
         </section>
