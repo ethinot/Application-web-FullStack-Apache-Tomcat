@@ -45,18 +45,19 @@
 </script>
 
 <script id="todos-template" type="text/template">
+    {{#if nbTodos}}
     <table>
         <thead>
-        <tr>
-            <th></th>
-            <th>Titre</th>
-            <th>Assigné à</th>
-            <th></th>
-            <th></th>
-        </tr>
+            <tr>
+                <th></th>
+                <th>Titre</th>
+                <th>Assigné à</th>
+                <th></th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
-        {{#todos}}
+        {{#todosList}}
         {{#isMe}}
         <tr class="special">
             <td>{{{checkBox}}}</td>
@@ -73,9 +74,10 @@
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
         </tr>
-        {{/todos}}
+        {{/todosList}}
         </tbody>
     </table>
+    {{/if}}
 </script>
 
 <!-- Pré-compilation des template-->
@@ -226,7 +228,7 @@
                     try {
                         if (window.location.hash === "#todoList") {
                             await addTodos(todosIds);
-                            insertCompiledTemplate(compiledTodosTemplate, { todos }, "todos-container");
+                            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
                         }
                     } catch (err) {
                         console.error("Error in hashchange event:", err);
