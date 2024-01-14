@@ -46,34 +46,6 @@
     {{#if nbTodos}}
     <table>
         <thead>
-        <tr>
-            <th></th>
-            <th>Titre</th>
-            <th>Assigné à</th>
-            <th></th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#todosList}}
-        <tr>
-            <td>{{{checkBox}}}</td>
-            <td>{{title}}</td>
-            <td>{{assignee}}</td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}})">M'attribuer ce todo</button></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
-        </tr>
-        {{/todosList}}
-        </tbody>
-    </table>
-    {{/if}}
-</script>
-
-<!--
-<script id="todos-template" type="text/template">
-    {{#if nbTodos}}
-    <table>
-        <thead>
             <tr>
                 <th></th>
                 <th>Titre</th>
@@ -86,19 +58,19 @@
         {{#todosList}}
         {{#if isAssignee}}
         <tr class="special">
-            <td>{{{checkBox}}}</td>
-            <td>{{title}}</td>
-            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>Me retirer ce todo</button></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+            <td><span id="todo-checkbox" onclick="updateTodoStatus({{hash}})">{{{checkBox}}}</span></td>
+            <td><span id="todo-title" contenteditable="true" onblur="updateTodoTitle({{hash}})">{{title}}</span></td>
+            <td>{{assignee}}</td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}}, ' ')">Me retirer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button' onclick="deleteTodo({{hash}})">Supprimer ce todo </button></td>
         </tr>
         {{else}}
         <tr>
-            <td>{{{checkBox}}}</td>
-            <td>{{title}}</td>
-            <td><a href="#user/{{assignee}}">{{assignee}}</a></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
-            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+            <td><span id="todo-checkbox" onclick="updateTodoStatus({{hash}})">{{{checkBox}}}</span></td>
+            <td><span id="todo-title" contenteditable="true" onblur="updateTodoTitle({{hash}})">{{title}}</span></td>
+            <td>{{assignee}}</td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}}, connectedUser.login)">M'attribuer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button' onclick="deleteTodo({{hash}})">Supprimer ce todo</button></td>
         </tr>
         {{/if}}
         {{/todosList}}
@@ -106,7 +78,7 @@
     </table>
     {{/if}}
 </script>
--->
+
 
 <!-- Pré-compilation des template-->
 <script>
