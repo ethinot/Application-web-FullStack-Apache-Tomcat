@@ -27,7 +27,6 @@
 <script id="menu-template" type="text/template">
     <li class="nav-item"><a href='#index'>Accueil</a></li>
     <li class="nav-item"><a href='#connect'>Connexion</a></li>
-    <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
     {{#loged}}
     <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
     <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
@@ -141,9 +140,8 @@
 <header id="header-container"></header>
 
 <script>
-    // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
     document.addEventListener('DOMContentLoaded', function() {
-        insertCompiledTemplate(compiledHeaderTemplate, user2, "header-container");
+        insertCompiledTemplate(compiledHeaderTemplate, user, "header-container");
     });
 </script>
 
@@ -188,6 +186,7 @@
         <section id='monCompte' class='inactive'>
             <h2>Mon compte</h2>
             <script>
+                // Todo : faire comme le get des todos et écouter l'event hashchange
                 document.addEventListener("DOMContentLoaded", function (event) {
                     insertCompiledTemplate(compiledLoginTemplate, user1, "login");
                     insertCompiledTemplate(compiledUsernameTemplate, user1, "nom_update_input");
@@ -199,7 +198,7 @@
                 <tr>
                     <td>Nom : </td>
                     <td><span id="nom_update_input" contenteditable="true"></span></td>
-                    <td><button type="button" class="btn btn-secondary" id="user_update_button">Modifier</button></td>
+                    <td><button type="button" class="btn btn-secondary" id="user_update_button" onclick="setUsername(user.login)">Modifier</button></td>
                 </tr>
                 <tr>
                     <td><label for="password_update_input">Mot de passe :</label></td>
