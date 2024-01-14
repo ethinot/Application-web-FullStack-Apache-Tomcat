@@ -17,7 +17,6 @@
 <!-- Templates -->
 <script id="header-template" type="text/template">
     <h1 class="header-titre">MIF-TODOS</h1>
-    <!-- TODO : Ajouter une condition de connection pour la div qui suit -->
     <div class="wrapper">
         <p class="header-user requiresConnection">Bonjour <strong>{{ name }}</strong></p>
         <p class="header-deco requiresConnection"><a href='#deco'>Déconnexion</a></p>
@@ -47,6 +46,34 @@
     {{#if nbTodos}}
     <table>
         <thead>
+        <tr>
+            <th></th>
+            <th>Titre</th>
+            <th>Assigné à</th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#todosList}}
+        <tr>
+            <td>{{{checkBox}}}</td>
+            <td>{{title}}</td>
+            <td>{{assignee}}</td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}})">M'attribuer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
+        </tr>
+        {{/todosList}}
+        </tbody>
+    </table>
+    {{/if}}
+</script>
+
+<!--
+<script id="todos-template" type="text/template">
+    {{#if nbTodos}}
+    <table>
+        <thead>
             <tr>
                 <th></th>
                 <th>Titre</th>
@@ -57,7 +84,7 @@
         </thead>
         <tbody>
         {{#todosList}}
-        {{#isMe}}
+        {{#if isAssignee}}
         <tr class="special">
             <td>{{{checkBox}}}</td>
             <td>{{title}}</td>
@@ -65,7 +92,7 @@
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>Me retirer ce todo</button></td>
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
         </tr>
-        {{/isMe}}
+        {{else}}
         <tr>
             <td>{{{checkBox}}}</td>
             <td>{{title}}</td>
@@ -73,11 +100,13 @@
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
         </tr>
+        {{/if}}
         {{/todosList}}
         </tbody>
     </table>
     {{/if}}
 </script>
+-->
 
 <!-- Pré-compilation des template-->
 <script>
@@ -137,21 +166,9 @@
         });
 </script>
 
-<header id="header-container"></header>
-
-<script>
-    // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
-    window.addEventListener("hashchange", async function() {
-        try {
-            if(window.location.hash === "#connect") {
-                await getConnectedUser();
-                insertCompiledTemplate(compiledHeaderTemplate, userConnected, "header-container");
-            }
-        } catch (e) {
-            console.error("Error in hashchange event : " , e);
-        }
-    });
-</script>
+<header id="header-container">
+    <h1 class="header-titre">MIF-TODOS</h1>
+</header>
 
 
 <div class="wrapper">
@@ -212,13 +229,13 @@
                 <tr><td>Login : </td><td><span id="login"></span></td></tr>
                 <tr>
                     <td>Nom : </td>
-                    <td><span id="nom_update_input" contenteditable="true">{{ name }}</span></td>
-                    <td><button type="button" class="btn btn-secondary" id="user_update_button">Modifier</button></td>
+                    <td><span id="nom_update_input" contenteditable="true"></span></td>
+                    <td><button type="button" class="btn btn-secondary" id="user_update_button" onclick="setUsername(connectedUser.login)">Modifier</button></td>
                 </tr>
                 <tr>
                     <td><label for="password_update_input">Mot de passe :</label></td>
                     <td><input class="form-control" type="password" id="password_update_input"></td>
-                    <td><button type="button" class="btn btn-secondary" id="password_update_button" onclick="setPassword(user.login)">Modifier</button></td>
+                    <td><button type="button" class="btn btn-secondary" id="password_update_button" onclick="setPassword(connectedUser.login)">Modifier</button></td>
                 </tr>
             </table>
 
@@ -248,10 +265,10 @@
             <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
             <div class="list" id="todos-container">...</div>
             <script>
-                window.addEventListener("hashchange", async function () {
+                window.addEventListener("hashchange", async function (event) {
                     try {
                         if (window.location.hash === "#todoList") {
-                            await addTodos(todosIds);
+                            await createTodosList();
                             insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
                         }
                     } catch (err) {
@@ -269,7 +286,7 @@
                         <input class="form-control" type="text" id="text" size="50">
                     </div>
                     <div class="col-sm-2">
-                        <button type="button" class="btn btn-secondary" id="addTodo_button">Créer un nouveau todo</button>
+                        <button type="button" class="btn btn-secondary" id="addTodo_button" onclick="createTodo()">Créer un nouveau todo</button>
                     </div>
                 </div>
             </div>

@@ -57,7 +57,6 @@ const user1 = {
     user1AssignedTodo
 }
 
-let userConnected;
 let userName;
 let userTodos = [];
 
@@ -70,11 +69,18 @@ const user2 = {
 
 let users = []
 
-let user = {
+let connectedUser = {
     login: "",
     name: "",
     assignedTodos: []
 }
+
+let stampUser = {
+    login: "",
+    name: "",
+    assignedTodos: []
+}
+
 
 let isLoged = {
     loged: false
@@ -224,15 +230,21 @@ async function connect() {
 
         if (response.status === 204) {
             displayRequestResult("Connexion réussie", "alert-success");
-            displayConnected(true);
 
             const authorizationHeader = response.headers.get('Authorization');
 
             if (authorizationHeader) {
                 localStorage.setItem('jwt', authorizationHeader);
-                user.login = body.login;
-                // Todo : Appellez un fonction qui vas get le user et update l'obj user
+                isLoged.loged = true;
+
+                connectedUser.login = body.login;
+
                 console.log("In login: Authorization = " + authorizationHeader);
+
+                await getUser(connectedUser.login, connectedUser);
+                insertCompiledTemplate(compiledHeaderTemplate, connectedUser, "header-container");
+
+                displayConnected(true);
             } else {
                 console.error('Le header "Authorization" est manquant dans la réponse.');
             }
@@ -249,9 +261,9 @@ async function connect() {
 
 async function disconnect() {
     isLoged.loged = false;
-    user.login = "";
-    user.name = "";
-    user.assignedTodos = [];
+    connectedUser.login = "";
+    connectedUser.name = "";
+    connectedUser.assignedTodos = [];
 
     localStorage.removeItem("jwt");
 
@@ -282,7 +294,7 @@ async function precompileTemplate(scriptId) {
     });
 }
 
-function insertCompiledTemplate(compiledTemplate,data, targetId) {
+function insertCompiledTemplate(compiledTemplate, data, targetId) {
     document.getElementById(targetId).innerHTML = compiledTemplate(data);
 }
 
@@ -290,6 +302,41 @@ function updateLogedStatus(newStatus) {
     isLoged.loged = newStatus;
     insertCompiledTemplate(compiledMenuTemplate, isLoged, "menu-container");
 }
+
+
+async function getUser(login, userObject) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible un utilisateur.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+        const requestConfig = {
+            method: "GET",
+            headers: headers,
+            mode: "cors"
+        }
+        const response = await fetch(baseUrl + "users/" + login, requestConfig)
+
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            const json = await response.json();
+
+            userObject.login = json.login;
+            userObject.name = json.name;
+            userObject.assignedTodos = json.assignedTodos;
+
+            return userObject;
+        } else {
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In getUser : " + err);
+    }
+}
+
 
 // Todo add function for re-render (insert) template when the name is modifie
 
@@ -320,7 +367,7 @@ async function setUsername(userId) {
 
         if (response.status === 204) {
             displayRequestResult("Modification du nom réussis", "alert-success");
-            user.name = body.name;
+            connectedUser.name = body.name;
             // Todo déclacher un mise à jour
             location.hash = "#monCompte";
         } else {
@@ -359,7 +406,6 @@ async function setPassword(userId) {
 
         if (response.status === 204) {
             displayRequestResult("Modification du mot de passe réussis", "alert-success");
-            user.name = body.name;
             location.hash = "#monCompte";
         } else {
             displayRequestResult("Erreur lors de la modification du mot de passe ", "alert-danger");
@@ -397,15 +443,57 @@ async function getConnectedUser () {
     }
 }
 
+async function createTodo() {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de changer son mot de passe.");
+            return;
+        }
 
-let todoStamp;
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            title: document.getElementById('text').value,
+            creator: connectedUser.login
+        };
+
+        const requestConfig = {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos", requestConfig);
+
+        if (response.status === 201) {
+            displayRequestResult("Todo crée !", "alert-success");
+            await createTodosList();
+            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+        } else {
+            displayRequestResult("Erreur lors de la création d'un todo ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In createTodo(): " + err);
+    }
+}
+
+
+
+
+let todoArray = [];
+
 
 /**
  *
  * @param todoId l'id tu todo demander.
  * @returns {Promise<any>}
  */
-async function getTodo(todoId) {
+async function fetchTodo(todoId) {
     try {
         if (!isConnected()) {
             console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
@@ -426,14 +514,18 @@ async function getTodo(todoId) {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-            return todoStamp = json;
-            console.log(todoStamp);
+
+            const isTodoAlreadyPresent = todoArray.some(todo => todo.hash === json.hash);
+
+            if (!isTodoAlreadyPresent) {
+                todoArray.push(json);
+            }
 
         } else {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getTodo : " + err);
+        console.error("In fetchTodo : " + err);
     }
 }
 
@@ -464,33 +556,14 @@ async function getAssignedTodos() {
 let todosIds;
 
 let todos = {
-    "todosList": [],
-    "nbTodos" : 0
+    todosList: [],
+    nbTodos : 0
 };
-
-
-async function addTodos(todosIds) {
-    try {
-        const todoPromises = todosIds.map(todoId => getTodo(todoId));
-        const resolvedTodos = await Promise.all(todoPromises);
-
-        const uniqueTodos = resolvedTodos.filter(newTodo => !todos.todosList.some(existingTodo => existingTodo.hash === newTodo.hash));
-
-        todos.todosList = todos.todosList.concat(uniqueTodos);
-
-        todos.nbTodos = todos.todosList.length;
-
-        console.log("Tableau fini : ", todos);
-    } catch (err) {
-        console.error("In addTodos: " + err);
-    }
-}
-
 
 /**
  * Récupère tous les todos.
  */
-async function getTodos() {
+async function fetchTodosIds() {
     try {
         if (!isConnected()) {
             console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
@@ -519,15 +592,86 @@ async function getTodos() {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getTodos: " + err);
+        console.error("In fetchTodosIds: " + err);
+    }
+}
+
+async function createTodosList() {
+    try {
+        await fetchTodosIds();
+        const todoPromises = todosIds.map(todoId => fetchTodo(todoId));
+        const resolvedTodos = await Promise.all(todoPromises);
+        console.log("Resolved Todos :" + resolvedTodos);
+
+        //const uniqueTodos = resolvedTodos.filter(newTodo => !todos.todosList.some(existingTodo => existingTodo.hash === newTodo.hash));
+
+        todos.todosList = todoArray;
+
+        todos.todosList.forEach(function(todo) {
+            if (todo) {
+                let assignee = todo.assignee ?? "";
+                todo.isAssignee = assignee === connectedUser.login;
+            }
+        });
+
+        todos.nbTodos = todos.todosList.length;
+
+        console.log("Tableau fini : ", todos);
+    } catch (err) {
+        console.error("In createTodosList: " + err);
+    }
+}
+
+async function updateAssigned(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de modifier l'utilisateur assignée à ce todo.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            assignee: connectedUser.login
+        };
+
+        const requestConfig = {
+            method: "PUT",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/" + todoId, requestConfig);
+
+        if (response.status === 204) {
+            displayRequestResult("Modification de l'utilisateur assignée réussis", "alert-success");
+            todoArray = [];
+            await createTodosList();
+            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+
+        } else {
+            displayRequestResult("Erreur lors de la modification de l'utilisateur assignée ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In updateAssigned(): " + err);
     }
 }
 
 async function getNumberOfTodos() {
-    try {
-        await getTodos();
+    if (!isConnected()) {
+        return;
+    }
 
-        const numberOfTodos = todos.todosList.length;
+    try {
+
+        await fetchTodosIds();
+
+        const numberOfTodos = todosIds.length;
 
         document.getElementById("nbTodos").innerText = numberOfTodos;
     } catch (err) {
@@ -538,6 +682,6 @@ async function getNumberOfTodos() {
 setInterval(getNumberOfUsers, 5000);
 
 setInterval(getNumberOfTodos, 10000);
-setInterval(getTodos, 5000);
+setInterval(fetchTodosIds, 5000);
 
 
