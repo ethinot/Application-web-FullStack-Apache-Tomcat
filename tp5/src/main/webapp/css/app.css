@@ -126,3 +126,15 @@ button:active {
     font-weight: bold;
     color: #721c24;
 }
+
+/* Add this to your existing CSS or create a new stylesheet */
+
+#todo-checkbox:hover {
+    cursor: pointer;
+    background-color: #e0e0e0;
+}
+
+#todo-title:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
