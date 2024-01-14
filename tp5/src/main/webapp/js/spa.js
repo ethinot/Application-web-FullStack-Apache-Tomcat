@@ -66,8 +66,17 @@ const user2 = {
     assignedTodos: null
 }
 
+
+let users = []
+
+let user = {
+    login: "",
+    name: "",
+    assignedTodos: []
+}
+
 let isLoged = {
-    "loged": false
+    loged: false
 }
 
     // Todo
@@ -125,11 +134,13 @@ function displayRequestResult(text, cssClass = "alert-info") {
  */
 function displayConnected(isConnected) {
     updateLogedStatus(isConnected);
+
     const elementsRequiringConnection = document.getElementsByClassName("requiresConnection");
     const visibilityValue = isConnected ? "visible" : "collapse";
-    for(const element of elementsRequiringConnection) {
+
+    Array.from(elementsRequiringConnection).forEach(element => {
         element.style.visibility = visibilityValue;
-    }
+    });
 }
 
 window.addEventListener('hashchange', () => { show(window.location.hash); });
@@ -145,13 +156,10 @@ window.addEventListener('hashchange', () => { show(window.location.hash); });
  */
 function isConnected() {
     const jwtToken = localStorage.getItem('jwt');
-    return !!jwtToken;
+    return !!jwtToken && isLoged.loged;
 }
 
-/**
- * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
- */
-async function getNumberOfUsers() {
+async function getUsers() {
     try {
         const headers = new Headers();
         headers.append("Accept", "application/json");
@@ -166,9 +174,8 @@ async function getNumberOfUsers() {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-
             if (Array.isArray(json)) {
-                document.getElementById("nbUsers").innerText = json.length;
+                users = json;
             } else {
                 throw new Error(json + " is not an array.");
             }
@@ -176,43 +183,17 @@ async function getNumberOfUsers() {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getNumberOfUsers: " + err);
+        console.error("In getUsers: " + err);
     }
 }
 
 /**
- * Met à jour le nombre de todos créer sur la vue "todoList".
+ * Met à jour le nombre d'utilisateurs de l'API sur la vue "index".
  */
-async function getNumberOfTodos() {
+async function getNumberOfUsers() {
     try {
-        if (!isConnected()) {
-            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
-            return;
-        }
-
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Authorization", localStorage.getItem('jwt'));
-
-        const requestConfig = {
-            method: "GET",
-            headers: headers,
-            mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
-        };
-
-        const response = await fetch(baseUrl + "todos", requestConfig);
-
-        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
-            const json = await response.json();
-
-            if (Array.isArray(json)) {
-                document.getElementById("nbTodos").innerText = json.length;
-            } else {
-                throw new Error(json + " is not an array.");
-            }
-        } else {
-            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
-        }
+        await getUsers();
+        document.getElementById("nbUsers").innerText = users.length;
     } catch (err) {
         console.error("In getNumberOfUsers: " + err);
     }
@@ -222,39 +203,60 @@ async function getNumberOfTodos() {
  * Envoie la requête de login en fonction du contenu des champs de l'interface.
  */
 async function connect() {
-    displayConnected(true);
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
+
     const body = {
         login: document.getElementById("login_input").value,
         password: document.getElementById("password_input").value
     };
+
     const requestConfig = {
         method: "POST",
         headers: headers,
         body: JSON.stringify(body),
         mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
     };
-    await fetch(baseUrl + "users/login", requestConfig)
-        .then((response) => {
-            if(response.status === 204) {
-                displayRequestResult("Connexion réussie", "alert-success");
-                const authorizationHeader = response.headers.get('Authorization');
-                if (authorizationHeader) {
-                    localStorage.setItem('jwt', authorizationHeader);
-                    console.log("In login: Authorization = " + authorizationHeader);
-                } else {
-                    console.error('Le header "Authorization" est manquant dans la réponse.');
-                }
-                location.hash = "#index";
+
+    try {
+        const response = await fetch(baseUrl + "users/login", requestConfig);
+
+        if (response.status === 204) {
+            displayRequestResult("Connexion réussie", "alert-success");
+            displayConnected(true);
+
+            const authorizationHeader = response.headers.get('Authorization');
+
+            if (authorizationHeader) {
+                localStorage.setItem('jwt', authorizationHeader);
+                user.login = body.login;
+                // Todo : Appellez un fonction qui vas get le user et update l'obj user
+                console.log("In login: Authorization = " + authorizationHeader);
             } else {
-                displayRequestResult("Connexion refusée ou impossible", "alert-danger");
-                throw new Error("Bad response code (" + response.status + ").");
+                console.error('Le header "Authorization" est manquant dans la réponse.');
             }
-        })
-        .catch((err) => {
-            console.error("In login: " + err);
-        })
+
+            location.hash = "#index";
+        } else {
+            displayRequestResult("Connexion refusée ou impossible", "alert-danger");
+            throw new Error("Bad response code (" + response.status + ").");
+        }
+    } catch (err) {
+        console.error("In connect: " + err);
+    }
+}
+
+async function disconnect() {
+    isLoged.loged = false;
+    user.login = "";
+    user.name = "";
+    user.assignedTodos = [];
+
+    localStorage.removeItem("jwt");
+
+    location.hash = "#index";
+    displayRequestResult("Déconnexion réussie", "alert-success");
+    displayConnected(false);
 }
 
 function renderTemplate(scriptId, data, targetId) {
@@ -283,111 +285,90 @@ function insertCompiledTemplate(compiledTemplate,data, targetId) {
     document.getElementById(targetId).innerHTML = compiledTemplate(data);
 }
 
-
 function updateLogedStatus(newStatus) {
     isLoged.loged = newStatus;
-    renderTemplate('menu-template', isLoged, 'menu-container');
+    insertCompiledTemplate(compiledMenuTemplate, isLoged, "menu-container");
 }
 
-function deco() {
-    const headers = new Headers();
-    headers.append("Content-Type", "application/json");
-    headers.append("Authorization", localStorage.getItem('jwt'));
-    const requestConfig = {
-        method : "POST",
-        headers : headers
-    };
-    fetch(baseUrl + "users/logout", requestConfig)
-        .then((response) => {
-            if (response.status === 204){
-                displayRequestResult("Déconnexion réussie", "alert-success");
-                location.hash = "#index";
-            } else {
-                displayRequestResult("Déconnexion échouée", "alert-danger");
-                throw new Error("Bad response code (" + response.status + ").");
-            }
-        })
-        .catch((err) => {
-            console.error("In logout " + err);
-        })
-    displayConnected(false);
-}
+// Todo add function for re-render (insert) template when the name is modifie
 
-async function getAllUsers () {
+async function setUsername(userId) {
     try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de changer son nom.");
+            return;
+        }
+
         const headers = new Headers();
         headers.append("Accept", "application/json");
-        const reqConfig = {
-            method: "GET",
-            headers: headers
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            name: document.getElementById('nom_update_input').innerText
         };
-        await fetch(baseUrl + "users", reqConfig)
-            .then((response) => {
-                if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
-                    return response.json();
-                }
-            })
-            .then((data) => {
-                if (Array.isArray(data)) {
-                    console.log(data);
-                }
-            });
-    } catch (err) {
-        console.error("In getAllUsers", err);
-    }
-}
 
-async function getConnectedUser () {
-    try {
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Content-Type", "text/html");
-        headers.append("Authorization", localStorage.getItem('jwt'));
         const requestConfig = {
-            method: "GET",
+            method: "PUT",
             headers: headers,
+            body: JSON.stringify(body),
             mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "users/" + userId, requestConfig);
+
+        if (response.status === 204) {
+            displayRequestResult("Modification du nom réussis", "alert-success");
+            user.name = body.name;
+            // Todo déclacher un mise à jour
+            location.hash = "#monCompte";
+        } else {
+            displayRequestResult("Erreur lors de la modification du nom ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
-        await fetch(baseUrl + users[0], requestConfig)
-            .then((response) => {
-                if (response.ok && response.status === 200 && response.headers.get("Content-Type").includes("application/json")) {
-                    return response.json();
-                }
-            }).then((data) => {
-                console.log(data);
-                userConnected = data;
-            });
-    }
-    catch (err) {
-        console.log("In getConnectedUser", err);
+    } catch (err) {
+        console.error("In setUsername(): " + err);
     }
 }
 
-/*async function getUserName() {
+async function setPassword(userId) {
     try {
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Content-Type", "text/html");
-        headers.append("Authorization", localStorage.getItem('jwt'));
-
-        const requestConfig = {
-            method : "GET",
-            headers : headers
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de changer son mot de passe.");
+            return;
         }
 
-        await fetch(baseUrl + users[0] + "/name", requestConfig)
-            .then((response) => {
-                if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
-                    return response.json();
-                }
-            }).then((data) => {
-                userName = data.name;
-                return data;
-            })
-    } catch (e) {
-        console.log("In getUserName", e);
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            password: document.getElementById('password_update_input').value
+        };
+
+        const requestConfig = {
+            method: "PUT",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "users/" + userId, requestConfig);
+
+        if (response.status === 204) {
+            displayRequestResult("Modification du mot de passe réussis", "alert-success");
+            user.name = body.name;
+            location.hash = "#monCompte";
+        } else {
+            displayRequestResult("Erreur lors de la modification du mot de passe ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In setPassword(): " + err);
     }
-}*/
+}
+
 
 let todoStamp;
 
@@ -424,7 +405,7 @@ async function getTodo(todoId) {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getNumberOfUsers: " + err);
+        console.error("In getTodo : " + err);
     }
 }
 
@@ -454,15 +435,22 @@ async function getAssignedTodos() {
 
 let todosIds;
 
-let todos = [];
+let todos = {
+    "todosList": [],
+    "nbTodos" : 0
+};
 
 
 async function addTodos(todosIds) {
     try {
         const todoPromises = todosIds.map(todoId => getTodo(todoId));
-        await Promise.all(todoPromises);
+        const resolvedTodos = await Promise.all(todoPromises);
 
-        todos = todos.concat(todoStamp);
+        const uniqueTodos = resolvedTodos.filter(newTodo => !todos.todosList.some(existingTodo => existingTodo.hash === newTodo.hash));
+
+        todos.todosList = todos.todosList.concat(uniqueTodos);
+
+        todos.nbTodos = todos.todosList.length;
 
         console.log("Tableau fini : ", todos);
     } catch (err) {
@@ -495,41 +483,33 @@ async function getTodos() {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
+
+            const uniqueTodosIds = [...new Set(json)];
+
+            todosIds = uniqueTodosIds;
         } else {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getNumberOfUsers: " + err);
+        console.error("In getTodos: " + err);
     }
 }
 
-/*async function getAssignedTodos() {
+async function getNumberOfTodos() {
     try {
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Content-Type", "text/html");
-        headers.append("Authorization", localStorage.getItem('jwt'));
+        await getTodos();
 
-        const requestConfig = {
-            method : "GET",
-            headers : headers
-        }
+        const numberOfTodos = todos.todosList.length;
 
-        await fetch(baseUrl + "todos", requestConfig)
-            .then((response) => {
-                if(response.ok && response.headers.get("Content-Type").includes("application/json")) {
-                    return response.json();
-                }
-            }).then((data) => {
-                userTodos = data;
-                return data;
-            })
-    } catch (e) {
-        console.log("In getUserName", e);
+        document.getElementById("nbTodos").innerText = numberOfTodos;
+    } catch (err) {
+        console.error("In getNumberOfTodos: " + err);
     }
-}*/
+}
 
 setInterval(getNumberOfUsers, 5000);
+
 setInterval(getNumberOfTodos, 10000);
 setInterval(getTodos, 5000);
+
 

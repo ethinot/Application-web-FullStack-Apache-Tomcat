@@ -27,7 +27,6 @@
 <script id="menu-template" type="text/template">
     <li class="nav-item"><a href='#index'>Accueil</a></li>
     <li class="nav-item"><a href='#connect'>Connexion</a></li>
-    <li class="nav-item"><button type="button" onclick="getAllUsers()">Récupérer utilisateurs</button></li>
     {{#loged}}
     <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
     <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
@@ -45,18 +44,19 @@
 </script>
 
 <script id="todos-template" type="text/template">
+    {{#if nbTodos}}
     <table>
         <thead>
-        <tr>
-            <th></th>
-            <th>Titre</th>
-            <th>Assigné à</th>
-            <th></th>
-            <th></th>
-        </tr>
+            <tr>
+                <th></th>
+                <th>Titre</th>
+                <th>Assigné à</th>
+                <th></th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
-        {{#todos}}
+        {{#todosList}}
         {{#isMe}}
         <tr class="special">
             <td>{{{checkBox}}}</td>
@@ -73,9 +73,10 @@
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button'>M'attribuer ce todo</button></td>
             <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button'>Supprimer ce todo</button></td>
         </tr>
-        {{/todos}}
+        {{/todosList}}
         </tbody>
     </table>
+    {{/if}}
 </script>
 
 <!-- Pré-compilation des template-->
@@ -186,7 +187,7 @@
         <section id='deco' class='inactive'>
             <h2>Déconnexion</h2>
             <p>Cliquez ici pour vous déconnecter :
-                <button type="button" class="btn btn-secondary" id="logout_button" onclick="deco()">Déconnexion</button>
+                <button type="button" class="btn btn-secondary" id="logout_button" onclick="disconnect()">Déconnexion</button>
             </p>
         </section>
 
@@ -217,12 +218,12 @@
                 <tr>
                     <td><label for="password_update_input">Mot de passe :</label></td>
                     <td><input class="form-control" type="password" id="password_update_input"></td>
-                    <td><button type="button" class="btn btn-secondary" id="password_update_button">Modifier</button></td>
+                    <td><button type="button" class="btn btn-secondary" id="password_update_button" onclick="setPassword(user.login)">Modifier</button></td>
                 </tr>
             </table>
 
             <div>Assigné à :
-                    <ul id="assigned-todo-container"></ul>
+                <ul id="assigned-todo-container">...</ul>
             </div>
             <script>
                 // TODO : Remplacer le mock objets par le user connecté
@@ -251,7 +252,7 @@
                     try {
                         if (window.location.hash === "#todoList") {
                             await addTodos(todosIds);
-                            insertCompiledTemplate(compiledTodosTemplate, { todos }, "todos-container");
+                            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
                         }
                     } catch (err) {
                         console.error("Error in hashchange event:", err);
