@@ -1,52 +1,167 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MIF-TODOS</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.css">
-
     <link rel="stylesheet" href="css/app.css">
+    <script src=" https://cdn.jsdelivr.net/npm/mustache@4.2.0/mustache.min.js "></script>
+    <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     <script type="application/javascript" src="js/api-base.js"></script>
     <script type="application/javascript" src="js/spa.js"></script>
 </head>
 <body>
-<header>
+
+<!-- Templates -->
+<script id="header-template" type="text/template">
     <h1 class="header-titre">MIF-TODOS</h1>
     <div class="wrapper">
-        <p class="header-user requiresConnection">Bonjour <strong>Toto</strong></p>
+        <p class="header-user requiresConnection">Bonjour <strong>{{ name }}</strong></p>
         <p class="header-deco requiresConnection"><a href='#deco'>Déconnexion</a></p>
     </div>
-    <!--
-        TODO faire en sorte de n'afficher la dernière div que si l'utilisateur est connecté.
-    -->
+</script>
+
+<script id="menu-template" type="text/template">
+    <li class="nav-item"><a href='#index'>Accueil</a></li>
+    <li class="nav-item"><a href='#connect'>Connexion</a></li>
+    {{#loged}}
+    <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
+    <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
+    {{/loged}}
+</script>
+
+<script id="login-template" type="text/template">{{ login }}</script>
+
+<script id="username-template" type="text/template">{{ name }}</script>
+
+<script id="assigned-todos-template" type="text/template">
+    {{#assignedTodos}}
+    <li><a href="#todoList/{{title}}">{{title}}</a> {{assignee}} {{status}}</li>
+    {{/assignedTodos}}
+</script>
+
+<script id="todos-template" type="text/template">
+    {{#if nbTodos}}
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Titre</th>
+                <th>Assigné à</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#todosList}}
+        {{#if isAssignee}}
+        <tr class="special">
+            <td><span id="todo-checkbox" onclick="updateTodoStatus({{hash}})">{{{checkBox}}}</span></td>
+            <td><span id="todo-title" contenteditable="true" onblur="updateTodoTitle({{hash}})">{{title}}</span></td>
+            <td>{{assignee}}</td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}}, ' ')">Me retirer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button' onclick="deleteTodo({{hash}})">Supprimer ce todo </button></td>
+        </tr>
+        {{else}}
+        <tr>
+            <td><span id="todo-checkbox" onclick="updateTodoStatus({{hash}})">{{{checkBox}}}</span></td>
+            <td><span id="todo-title" contenteditable="true" onblur="updateTodoTitle({{hash}})">{{title}}</span></td>
+            <td>{{assignee}}</td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeUser_button' onclick="updateAssigned({{hash}}, connectedUser.login)">M'attribuer ce todo</button></td>
+            <td><button type="button" class="btn btn-secondary" id='{{hash}}_removeTodo_button' onclick="deleteTodo({{hash}})">Supprimer ce todo</button></td>
+        </tr>
+        {{/if}}
+        {{/todosList}}
+        </tbody>
+    </table>
+    {{/if}}
+</script>
+
+
+<!-- Pré-compilation des template-->
+<script>
+    // Header
+    let compiledHeaderTemplate;
+    precompileTemplate("header-template")
+        .then((compiledHeaderPromise) => {
+            compiledHeaderTemplate = compiledHeaderPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Menu
+    let compiledMenuTemplate;
+    precompileTemplate("menu-template")
+        .then((compiledMenuPromise) => {
+            compiledMenuTemplate = compiledMenuPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Login
+    let compiledLoginTemplate;
+    precompileTemplate("login-template")
+        .then((compiledLoginPromise) => {
+            compiledLoginTemplate = compiledLoginPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Username
+    let compiledUsernameTemplate;
+    precompileTemplate("username-template")
+        .then((compiledUsernamePromise) => {
+            compiledUsernameTemplate = compiledUsernamePromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Assigned-todos
+    let compiledAssignedTodosTemplate;
+    precompileTemplate("assigned-todos-template")
+        .then((compiledAssignedTodosPromise) => {
+            compiledAssignedTodosTemplate = compiledAssignedTodosPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+    // Todos
+    let compiledTodosTemplate;
+    precompileTemplate("todos-template")
+        .then((compiledTodosPromise) => {
+            compiledTodosTemplate = compiledTodosPromise;
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+</script>
+
+<header id="header-container">
+    <h1 class="header-titre">MIF-TODOS</h1>
 </header>
+
 
 <div class="wrapper">
     <aside class="menu">
         <h2>Menu</h2>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a href='#index'>Accueil</a></li>
-            <li class="nav-item"><a href='#connect'>Connexion</a></li>
-            <li class="requiresConnection nav-item"><a href='#monCompte'>Mon compte</a></li>
-            <li class="requiresConnection nav-item"><a href='#todoList'>Todos</a></li>
-        </ul>
-        <!--
-            TODO n'afficher "Mon compte" et "Todos" que si l'utilisateur est connecté.
-        -->
+        <ul class="nav flex-column" id="menu-container">...</ul>
     </aside>
-
+    <script>
+        // TODO : Remplacer le mock objets par le username de l'utilisateur connecté
+        document.addEventListener('DOMContentLoaded', function() {
+            insertCompiledTemplate(compiledMenuTemplate, isLoged, "menu-container");
+        });
+    </script>
     <article class="contenu">
         <div id="requestResult" class="alert"></div>
 
         <section id='index' class='active'>
             <h2>L'application des trucs à faire</h2>
             <p>Actuellement : <strong id="nbUsers">...</strong> utilisateurs inscrits.</p>
-            <!--
-                TODO A vous de modifier cette section pour qu'elle affiche les bonnes données et qu'elle se recharge toutes les 5 secondes.
-            -->
         </section>
+
 
         <section id='connect' class='inactive'>
             <h2>Connectez-vous pour accéder aux todos</h2>
@@ -55,107 +170,96 @@
                     <tr><td><label for="password_input">Mot de passe :</label></td><td><input class="form-control" type="password" id="password_input"></td></tr>
                     <tr><td><button type="button" class="btn btn-secondary" id="login_button" onclick="connect()">Connexion</button></td></tr>
                 </table>
-            <!--
-                TODO envoyer la requête puis récupérer et stocker le token.
-            -->
         </section>
+
 
         <section id='deco' class='inactive'>
             <h2>Déconnexion</h2>
             <p>Cliquez ici pour vous déconnecter :
-                <button type="button" class="btn btn-secondary" id="logout_button" onclick="deco()">Déconnexion</button>
+                <button type="button" class="btn btn-secondary" id="logout_button" onclick="disconnect()">Déconnexion</button>
             </p>
-            <!--
-                TODO envoyer la requête de logout et afficher la page d'accueil sans les éléments pour lesquels il faut être connecté.
-            -->
         </section>
 
         <section id='monCompte' class='inactive'>
             <h2>Mon compte</h2>
+            <script>
+                window.addEventListener("hashchange", async function () {
+                    try{
+                        if(document.location.hash === "#monCompte") {
+                            await getConnectedUser();
+                            insertCompiledTemplate(compiledLoginTemplate, connectedUser, "login");
+                            insertCompiledTemplate(compiledUsernameTemplate, connectedUser, "nom_update_input");
+                        }
+                    } catch (e) {
+                        console.error("Error in hashchange event : ", e)
+                    }
+
+                });
+            </script>
+
             <table id='compteList'>
-                <tr><td>Login : </td><td><span id="login">toto</span></td></tr>
+                <tr><td>Login : </td><td><span id="login"></span></td></tr>
                 <tr>
                     <td>Nom : </td>
-                    <td><span id="nom_update_input" contenteditable="true">Toto</span></td>
-                    <td><button type="button" class="btn btn-secondary" id="user_update_button">Modifier</button></td>
+                    <td><span id="nom_update_input" contenteditable="true"></span></td>
+                    <td><button type="button" class="btn btn-secondary" id="user_update_button" onclick="setUsername(connectedUser.login)">Modifier</button></td>
                 </tr>
                 <tr>
                     <td><label for="password_update_input">Mot de passe :</label></td>
                     <td><input class="form-control" type="password" id="password_update_input"></td>
-                    <td><button type="button" class="btn btn-secondary" id="password_update_button">Modifier</button></td>
+                    <td><button type="button" class="btn btn-secondary" id="password_update_button" onclick="setPassword(connectedUser.login)">Modifier</button></td>
                 </tr>
             </table>
+
             <div>Assigné à :
-                <ul>
-                    <li><a href="#todoList/idTodo1">Titre du premier todo</a></li>
-                    <li><a href="#todoList/idTodo3">Titre du troisième todo</a></li>
-                </ul>
+                <ul id="assigned-todo-container">...</ul>
             </div>
-            <!--
-                TODO afficher les informations dans les champs, récupérer les informations sur les todos et générer les éléments et leurs IDs.
-            -->
+            <script>
+                // TODO : Remplacer le mock objets par le user connecté
+                window.addEventListener("hashchange", async function () {
+                    try {
+                        if(window.location.hash === "#monCompte") {
+                            console.log("hashchange monCompte");
+                            await getUser(connectedUser.login, connectedUser);
+                            await getAssignedTodos();
+                            const todoTmp = { assignedTodos : userTodos}
+                            insertCompiledTemplate(compiledAssignedTodosTemplate, todoTmp, "assigned-todo-container");
+                        }
+                    } catch (e) {
+                        console.error("Error in hashchange event :", e);
+                    }
+                });
+            </script>
         </section>
 
         <section id='todoList' class='inactive'>
             <h2><strong>Liste des todos</strong></h2>
-            <p>Il y a actuellement <strong>...</strong> todo(s).</p>
-            <!--
-                TODO afficher le nombre de todos
-            -->
-            <div class="list">
-            <table>
-                <tr>
-                    <th></th>
-                    <th>Titre</th>
-                    <th>Assigné à</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-                <tr class="special">
-                    <td>&#x2611;</td>
-                    <td>Titre du premier todo</td>
-                    <td><a href="#user/toto">Toto</a></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo1_removeUser_button">Me retirer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo1_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-                <tr>
-                    <td>&#x2610;</td>
-                    <td>Titre du deuxième todo</td>
-                    <td><a href="#user/titi">Titi</a></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo2_assignUser_button">M'attribuer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo2_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-                <tr class="special">
-                    <td>&#x2610;</td>
-                    <td>Titre du troisième todo</td>
-                    <td><a href="#user/toto">Toto</a></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo3_removeUser_button">Me retirer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodo3_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-                <tr>
-                    <td>&#x2610;</td>
-                    <td>Titre du quatrième todo</td>
-                    <td></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodoN_assignUser_button">M'attribuer ce todo</button></td>
-                    <td><button type="button" class="btn btn-secondary" id="idTodoN_removeTodo_button">Supprimer ce todo</button></td>
-                </tr>
-            </table>
-            </div>
-            <!--
-                TODO mettre en place une boucle sur les todos et afficher les données.
-                TODO recharger les informations toutes les 5 secondes.
-            -->
+            <p>Il y a actuellement <strong id="nbTodos">...</strong> todo(s).</p>
+            <div class="list" id="todos-container">...</div>
+            <script>
+                window.addEventListener("hashchange", async function () {
+                    try {
+                        if (window.location.hash === "#todoList") {
+                            await createTodosList();
+                            await getUser(connectedUser.login, connectedUser);
+                            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+                        }
+                    } catch (err) {
+                        console.error("Error in hashchange event:", err);
+                    }
+                });
+            </script>
 
             <div class="container d-flex">
-                <div class ="row ">
-                    <div class="col-sm-2">
-                        <label class="form-label" for="text">Titre :</label>
+                <div class ="row">
+                    <div class="col-sm-2 tooltip">
+                        <label class="form-label" for="text">Titre : <span class="tooltiptext">Salut</span></label>
                     </div>
                     <div class="col-sm-8">
                         <input class="form-control" type="text" id="text" size="50">
                     </div>
                     <div class="col-sm-2">
-                        <button type="button" class="btn btn-secondary" id="addTodo_button">Créer un nouveau todo</button>
+                        <button type="button" class="btn btn-secondary" id="addTodo_button" onclick="createTodo()">Créer un nouveau todo</button>
                     </div>
                 </div>
             </div>
