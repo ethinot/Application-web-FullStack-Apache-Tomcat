@@ -375,18 +375,60 @@ async function setPassword(userId) {
     }
 }
 
+async function createTodo() {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de changer son mot de passe.");
+            return;
+        }
 
-let todoStamp;
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            title: document.getElementById('text').value,
+            creator: user.login
+        };
+
+        const requestConfig = {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos", requestConfig);
+
+        if (response.status === 201) {
+            displayRequestResult("Todo crée !", "alert-success");
+            await createTodosList();
+            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+        } else {
+            displayRequestResult("Erreur lors de la création d'un todo ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In createTodo(): " + err);
+    }
+}
+
+
+
+
+let todoArray = [];
+
 
 /**
  *
  * @param todoId l'id tu todo demander.
  * @returns {Promise<any>}
  */
-async function getTodo(todoId) {
+async function fetchTodo(todoId) {
     try {
         if (!isConnected()) {
-            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
+            console.error("L'utilisateur n'est pas connecté. Impossible un todo.");
             return;
         }
 
@@ -404,46 +446,32 @@ async function getTodo(todoId) {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-            todoStamp = json;
+
+            const isTodoAlreadyPresent = todoArray.some(todo => todo.hash === json.hash);
+
+            if (!isTodoAlreadyPresent) {
+                todoArray.push(json);
+            }
 
         } else {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getTodo : " + err);
+        console.error("In fetchTodo : " + err);
     }
 }
 
 let todosIds;
 
 let todos = {
-    "todosList": [],
-    "nbTodos" : 0
+    todosList: [],
+    nbTodos : 0
 };
-
-
-async function addTodos(todosIds) {
-    try {
-        const todoPromises = todosIds.map(todoId => getTodo(todoId));
-        const resolvedTodos = await Promise.all(todoPromises);
-
-        const uniqueTodos = resolvedTodos.filter(newTodo => !todos.todosList.some(existingTodo => existingTodo.hash === newTodo.hash));
-
-        todos.todosList = todos.todosList.concat(uniqueTodos);
-
-        todos.nbTodos = todos.todosList.length;
-
-        console.log("Tableau fini : ", todos);
-    } catch (err) {
-        console.error("In addTodos: " + err);
-    }
-}
-
 
 /**
  * Récupère tous les todos.
  */
-async function getTodos() {
+async function fetchTodosIds() {
     try {
         if (!isConnected()) {
             console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
@@ -472,15 +500,46 @@ async function getTodos() {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
     } catch (err) {
-        console.error("In getTodos: " + err);
+        console.error("In fetchTodosIds: " + err);
+    }
+}
+
+async function createTodosList() {
+    try {
+        await fetchTodosIds();
+        const todoPromises = todosIds.map(todoId => fetchTodo(todoId));
+        const resolvedTodos = await Promise.all(todoPromises);
+        console.log("Resolved Todos :" + resolvedTodos);
+
+        //const uniqueTodos = resolvedTodos.filter(newTodo => !todos.todosList.some(existingTodo => existingTodo.hash === newTodo.hash));
+
+        todos.todosList = todoArray;
+
+        todos.todosList.forEach(function(todo) {
+            if (todo) {
+                let assignee = todo.assignee ?? "";
+                todo.isAssignee = assignee === user.login;
+            }
+        });
+
+        todos.nbTodos = todos.todosList.length;
+
+        console.log("Tableau fini : ", todos);
+    } catch (err) {
+        console.error("In createTodosList: " + err);
     }
 }
 
 async function getNumberOfTodos() {
-    try {
-        await getTodos();
+    if (!isConnected()) {
+        return;
+    }
 
-        const numberOfTodos = todos.todosList.length;
+    try {
+
+        await fetchTodosIds();
+
+        const numberOfTodos = todosIds.length;
 
         document.getElementById("nbTodos").innerText = numberOfTodos;
     } catch (err) {
@@ -491,6 +550,6 @@ async function getNumberOfTodos() {
 setInterval(getNumberOfUsers, 5000);
 
 setInterval(getNumberOfTodos, 10000);
-setInterval(getTodos, 5000);
+setInterval(fetchTodosIds, 5000);
 
 
