@@ -451,6 +451,40 @@ async function createTodo() {
 }
 
 
+async function deleteTodo(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible supprimer ce todo.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const requestConfig = {
+            method: "DELETE",
+            headers: headers,
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/" + todoId, requestConfig);
+
+        if (response.status === 204) {
+            todoArray = [];
+            await createTodosList();
+            await getNumberOfTodos();
+            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+
+        } else {
+            displayRequestResult("Erreur lors de la suppression d'un todo ", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In deleteTodo: " + err);
+    }
+}
+
 
 
 let todoArray = [];
@@ -627,6 +661,84 @@ async function updateAssigned(todoId) {
         }
     } catch (err) {
         console.error("In updateAssigned(): " + err);
+    }
+}
+
+async function updateTodoStatus(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de modifier le status de ce todo.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            hash : todoId
+        };
+
+        const requestConfig = {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/toggleStatus", requestConfig);
+
+        if (response.status === 204) {
+            todoArray = [];
+            await createTodosList();
+            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+
+        } else {
+            displayRequestResult("Erreur vous n'êtes pas authorizer à modifier ce todo", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In updateTodoStatus: " + err);
+    }
+}
+
+async function updateTodoTitle(todoId) {
+    try {
+        if (!isConnected()) {
+            console.error("L'utilisateur n'est pas connecté. Impossible de modifier le status de ce todo.");
+            return;
+        }
+
+        const headers = new Headers();
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", localStorage.getItem('jwt'));
+
+        const body = {
+            title : document.getElementById('todo-title').innerText
+        };
+
+        const requestConfig = {
+            method: "PUT",
+            headers: headers,
+            body: JSON.stringify(body),
+            mode: "cors"
+        };
+
+        const response = await fetch(baseUrl + "todos/" + todoId, requestConfig);
+
+        if (response.status === 204) {
+            todoArray = [];
+            await createTodosList();
+            insertCompiledTemplate(compiledTodosTemplate, todos, "todos-container");
+
+        } else {
+            displayRequestResult("Erreur vous n'êtes pas authorizer à modifier ce todo", "alert-danger");
+            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
+        }
+    } catch (err) {
+        console.error("In updateTodoStatus: " + err);
     }
 }
 
