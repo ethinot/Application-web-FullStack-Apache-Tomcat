@@ -177,46 +177,6 @@ async function getNumberOfUsers() {
     }
 }
 
-
-/**
- * Met à jour le nombre de todos créer sur la vue "todoList".
- */
-async function getNumberOfTodos() {
-    try {
-        if (!isConnected()) {
-            console.error("L'utilisateur n'est pas connecté. Impossible de récupérer les todos.");
-            return;
-        }
-
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Authorization", localStorage.getItem('jwt'));
-
-        const requestConfig = {
-            method: "GET",
-            headers: headers,
-            mode: "cors" // pour le cas où vous utilisez un serveur différent pour l'API et le client.
-        };
-
-        const response = await fetch(baseUrl + "todos", requestConfig);
-
-        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
-            const json = await response.json();
-
-            if (Array.isArray(json)) {
-                document.getElementById("nbTodos").innerText = json.length;
-            } else {
-                throw new Error(json + " is not an array.");
-            }
-        } else {
-            throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
-        }
-    } catch (err) {
-        console.error("In getNumberOfUsers: " + err);
-    }
-}
-
-
 function getUserName() {
     return fetch(baseUrl + "users/name")
         .then(response => {
@@ -435,15 +395,22 @@ async function getTodo(todoId) {
 
 let todosIds;
 
-let todos = [];
+let todos = {
+    "todosList": [],
+    "nbTodos" : 0
+};
 
 
 async function addTodos(todosIds) {
     try {
         const todoPromises = todosIds.map(todoId => getTodo(todoId));
-        await Promise.all(todoPromises);
+        const resolvedTodos = await Promise.all(todoPromises);
 
-        todos = todos.concat(todoStamp);
+        const uniqueTodos = resolvedTodos.filter(newTodo => !todos.todosList.some(existingTodo => existingTodo.hash === newTodo.hash));
+
+        todos.todosList = todos.todosList.concat(uniqueTodos);
+
+        todos.nbTodos = todos.todosList.length;
 
         console.log("Tableau fini : ", todos);
     } catch (err) {
@@ -476,7 +443,10 @@ async function getTodos() {
 
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
             const json = await response.json();
-            todosIds = json;
+
+            const uniqueTodosIds = [...new Set(json)];
+
+            todosIds = uniqueTodosIds;
         } else {
             throw new Error("Response is error (" + response.status + ") or does not contain JSON (" + response.headers.get("Content-Type") + ").");
         }
@@ -485,7 +455,18 @@ async function getTodos() {
     }
 }
 
+async function getNumberOfTodos() {
+    try {
+        await getTodos(); // Call the getTodos function to fetch todos
 
+        // Assuming getTodos updates the global variable todos
+        const numberOfTodos = todos.todosList.length;
+
+        document.getElementById("nbTodos").innerText = numberOfTodos;
+    } catch (err) {
+        console.error("In getNumberOfTodos: " + err);
+    }
+}
 
 setInterval(getNumberOfUsers, 5000);
 setInterval(getNumberOfTodos, 10000);
