@@ -337,9 +337,6 @@ async function getUser(login, userObject) {
     }
 }
 
-
-// Todo add function for re-render (insert) template when the name is modifie
-
 async function setUsername(userId) {
     try {
         if (!isConnected()) {
