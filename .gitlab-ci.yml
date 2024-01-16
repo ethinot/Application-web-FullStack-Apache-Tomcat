@@ -21,4 +21,4 @@ deploy:
   script:
     - cd $CURRENT_TP_FOLDER
     - mvn clean package
-    - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY ./target/todos-client.war gitlabci@192.168.75.58:$DEPLOY_PATH
+    - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY ./target/todos.war gitlabci@192.168.75.58:$DEPLOY_PATH
