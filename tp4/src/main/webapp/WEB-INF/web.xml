@@ -9,6 +9,7 @@
         <init-param>
             <param-name>cors.allowed.origins</param-name>
             <param-value>https://editor-next.swagger.io</param-value>
+            <param-value>http://localhost:8080</param-value>
         </init-param>
         <init-param>
             <param-name>cors.allowed.methods</param-name>
