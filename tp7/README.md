@@ -60,7 +60,8 @@ function getAppShellLoadTime() {
 ```js
 // Le temps de chargement du CRP. Ce temps est éstimé car il se base sur la dernière ressource supposément charger pour le CRP.
 function getCRPLoadTime() {
-    const lastNeededScript = 'https://192.168.75.58/api/client/js/bootstrap.js';
+    // const lastNeededScript = 'https://192.168.75.58/api/client/js/bootstrap.js'; premier version quand boostrape n'étais pas inclue via la CDN
+    const lastNeededScript = 'https://cdn.jsdelivr.net/npm/bootstrap-4@4.0.0/index.min.js';
     if (window.performance && window.performance.getEntriesByType) {
         const resourceEntries = performance.getEntriesByType('resource');
         const filteredScriptEntries = resourceEntries.filter(entry => {
@@ -130,8 +131,42 @@ location / {
 
 |                        | Chargement page HTML initial | Affichage de l'app shell | Affichage du CRP | 
 |------------------------|------------------------------|--------------------------|------------------|
-| Temps en millisecondes |             22ms             |           160ms          |       198ms      |
-|    **Amélioration**    |             12%              |            43%           |        49%       |
+| Temps en millisecondes |             22ms             |           120ms          |       198ms      |
+|    **Amélioration**    |             12%              |            57%           |        49%       |
 
 
 ## 3. Optimisation de votre application
+
+<center>
+<img src="./images/1er-mesure-2-perf.png" alt="Résultat de la première évaluation de performance de notre client via l'outil *Ligthhouse* du *DevTools Chrome*." width="400"/>
+<figcaption>Résultat du le première évaluation de performance de notre client via l'outil Ligthhouse du DevTools Chrome.</figcaption>
+</center>
+
+### Utilisation de CDN 
+
+* Ajoute du CDN pour :
+  * jQuery
+  * bootstrap
+  * popper.min.js
+  * what-input.min.js
+
+Cela permet par le même occasion de supprimer les anciennes importation en local.
+
+|                        | Chargement page HTML initial | Affichage de l'app shell | Affichage du CRP | 
+|------------------------|------------------------------|--------------------------|------------------|
+| Temps en millisecondes |             22ms             |           102ms          |       104ms      |
+|    **Amélioration**    |             12%              |            15%           |        47%       |
+
+
+
+### Chargement de l'image en décalé
+
+Notre dernière optimisation consiste à ajouter la méthode de chargement "lazy" à l'image présent de le *footer* de notre site.
+Cela permet de décaler le chargement jusqu'au moment où elle doit être affichée.
+
+Comme le montre cette image ci-dessous ces modifications nous, on permit d'atteindre un score de **99** en performance.Comme le montre cette image ci-dessous ces modifications nous, on permit d'atteindre un score de **99** en performance.
+
+<center>
+<img src="./images/last-mesure-2-perf.png" alt="Résultat de la évaluation de performance de notre client via l'outil *Ligthhouse* du *DevTools Chrome*." width="450"/>
+<figcaption>Résultat du le première évaluation de performance de notre client via l'outil Ligthhouse du DevTools Chrome.</figcaption>
+</center>
