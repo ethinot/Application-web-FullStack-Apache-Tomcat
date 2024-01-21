@@ -1,7 +1,6 @@
 package fr.univlyon1.m1if.m1if03.controllers.resources;
 
 import fr.univlyon1.m1if.m1if03.dao.TodoDao;
-import jakarta.validation.constraints.Positive;
 
 import java.util.NoSuchElementException;
 
@@ -25,7 +24,7 @@ public class TodoBusiness {
      * Modifie le statut d'un todo.
      * @param todoHash le hash du todo à modifier
      */
-    public void modifyStatus(@Positive int todoHash) throws IllegalArgumentException, NoSuchElementException {
+    public void modifyStatus(int todoHash) throws IllegalArgumentException, NoSuchElementException {
         boolean actuelStatus = todoDao.findByHash(todoHash).isCompleted();
         todoDao.findByHash(todoHash).setCompleted(!actuelStatus);
         todoDao.findByHash(todoHash).updateCheckBox();
